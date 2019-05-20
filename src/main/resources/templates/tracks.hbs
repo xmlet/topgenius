@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+        <title>jingle</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <p class="lead">jingle</p>
+                <hr>
+            </div>
+            <table class="table">
+                    <tr>
+                        <th>Track</th>
+                        <th>Listeners</th>
+                        <th>Playcount</th>
+                    </tr>
+                    {{#each tracks}}
+                        <tr>
+                            <td>
+                                <a href='{{url}}'>
+                                    {{name}}
+                                </a>
+                            </td>
+                            <td>{{listeners}}</td>
+                            <td>{{playcount}}</td>
+                        </tr>
+                    {{/each}}
+                </table>
+
+        </div>
+    </body>
+</html>
