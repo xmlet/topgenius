@@ -50,4 +50,7 @@ jar {
       'Main-Class': 'org.htmlflow.samples.topgenius.WebApp'
     )
   }
+  archiveBaseName = 'topgenius'
+  archiveVersion = '1.0'
+  archiveExtension = 'jar'
 }
