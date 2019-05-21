@@ -35,10 +35,11 @@ public class WebApp {
 
         JingleRouter.router(router, lastfm);
         JingleRxRouter.router(router, lastfm);
-
+        
+        String port = System.getProperty("server.port", "3000");
         vertx
                 .createHttpServer()
                 .requestHandler(router::accept)
-                .listen(3000);
+                .listen(Integer.parseInt(port));
     }
 }
