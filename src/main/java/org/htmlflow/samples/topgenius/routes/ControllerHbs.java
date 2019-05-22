@@ -2,7 +2,6 @@ package org.htmlflow.samples.topgenius.routes;
 
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.templ.HandlebarsTemplateEngine;
 import io.vertx.ext.web.templ.TemplateEngine;
@@ -14,30 +13,22 @@ import java.util.List;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toList;
 
-public class JingleRouter {
+public class ControllerHbs {
 
     private final LastfmWebApi lastfm;
     private final TemplateEngine engine = HandlebarsTemplateEngine.create();
 
-    public JingleRouter(LastfmWebApi lastfm) {
+    public ControllerHbs(LastfmWebApi lastfm) {
         this.lastfm = lastfm;
     }
 
-
-    public static Router router(Router router, LastfmWebApi lastfm) {
-        JingleRouter handlers = new JingleRouter(lastfm);
-        router.route("/search").handler(handlers::searchHandler);
-        router.route("/tracks/:mbid").handler(handlers::tracksHandler);
-        return router;
-    }
-
-    private void searchHandler(RoutingContext ctx) {
+    public void searchHandler(RoutingContext ctx) {
         HttpServerResponse resp = ctx.response();
         resp.putHeader("content-type", "text/html");
         resp.sendFile("templates/search.html");
     }
 
-    private void tracksHandler(RoutingContext ctx) {
+    public void tracksHandler(RoutingContext ctx) {
         HttpServerRequest req = ctx.request();
         HttpServerResponse resp = ctx.response();
         resp.putHeader("content-type", "text/html");

@@ -20,22 +20,32 @@ package org.htmlflow.samples.topgenius;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.StaticHandler;
-import org.htmlflow.samples.topgenius.routes.JingleRouter;
-import org.htmlflow.samples.topgenius.routes.JingleRxRouter;
+import org.htmlflow.samples.topgenius.routes.ControllerHbs;
+import org.htmlflow.samples.topgenius.routes.ControllerHfl;
 
 public class WebApp {
     public static void main(String[] args) throws Exception {
-
+        /**
+         * Setup Vertex and web controller.
+         */
+        LastfmWebApi lastfm = new LastfmWebApi();
+        ControllerHbs ctrHbs = new ControllerHbs(lastfm);
+        ControllerHfl ctrHfl = new ControllerHfl(lastfm);
+        /**
+         * Setup Vertex and router
+         */
         Vertx vertx = Vertx.vertx();
         Router router = Router.router(vertx);
-
+        /**
+         * Mount routes.
+         */
         router.route("/*").handler(StaticHandler.create("public"));
-
-        LastfmWebApi lastfm = new LastfmWebApi();
-
-        JingleRouter.router(router, lastfm);
-        JingleRxRouter.router(router, lastfm);
-        
+        router.route("/search").handler(ctrHbs::searchHandler);
+        router.route("/tracks/:mbid").handler(ctrHbs::tracksHandler);
+        router.route("/rx/tracks/:mbid").handler(ctrHfl::tracksHandler);
+        /**
+         * Create and run HTTP server.
+         */
         String port = System.getProperty("server.port", "3000");
         vertx
                 .createHttpServer()

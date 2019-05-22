@@ -6,7 +6,6 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpConnection;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import org.htmlflow.samples.topgenius.LastfmWebApi;
 import org.htmlflow.samples.topgenius.model.Track;
@@ -19,22 +18,16 @@ import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
 
-public class JingleRxRouter {
+public class ControllerHfl {
 
     private final LastfmWebApi lastfm;
     private Vertx io = Vertx.vertx(new VertxOptions().setWorkerPoolSize(40));
 
-    public JingleRxRouter(LastfmWebApi lastfm) {
+    public ControllerHfl(LastfmWebApi lastfm) {
         this.lastfm = lastfm;
     }
 
-    public static Router router(Router router, LastfmWebApi lastfm) {
-        JingleRxRouter handlers = new JingleRxRouter(lastfm);
-        router.route("/rx/tracks/:mbid").handler(handlers::tracksHandler);
-        return router;
-    }
-
-    private void tracksHandler(RoutingContext ctx) {
+    public void tracksHandler(RoutingContext ctx) {
         HttpServerRequest req = ctx.request();
         // !!!! TO DO: set an End handler !!!!!
         HttpServerResponse resp = ctx.response();
