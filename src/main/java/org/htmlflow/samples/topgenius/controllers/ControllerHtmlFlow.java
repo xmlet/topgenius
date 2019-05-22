@@ -1,4 +1,4 @@
-package org.htmlflow.samples.topgenius.routes;
+package org.htmlflow.samples.topgenius.controllers;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -9,7 +9,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import org.htmlflow.samples.topgenius.LastfmWebApi;
 import org.htmlflow.samples.topgenius.model.Track;
-import org.htmlflow.samples.topgenius.views.JingleRxViews;
+import org.htmlflow.samples.topgenius.views.ViewsHtmlFlow;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -17,39 +17,41 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
+import static org.htmlflow.samples.topgenius.views.ViewsHtmlFlow.context;
 
-public class ControllerHfl {
+public class ControllerHtmlFlow {
 
     private final LastfmWebApi lastfm;
-    private Vertx io = Vertx.vertx(new VertxOptions().setWorkerPoolSize(40));
+    private Vertx worker = Vertx.vertx(new VertxOptions().setWorkerPoolSize(40));
 
-    public ControllerHfl(LastfmWebApi lastfm) {
+    public ControllerHtmlFlow(LastfmWebApi lastfm) {
         this.lastfm = lastfm;
     }
 
-    public void tracksHandler(RoutingContext ctx) {
+    public void toptracksHandler(RoutingContext ctx) {
         HttpServerRequest req = ctx.request();
-        // !!!! TO DO: set an End handler !!!!!
         HttpServerResponse resp = ctx.response();
         resp.putHeader("content-type", "text/html");
-
-        String mbid = req.getParam("mbid");
+        /**
+         * Parse query-string parameters
+         */
+        String ctr = req.getParam("country");
         String str = req.getParam("limit");
         int limit = str != null ? parseInt(str) : 50;
-
-
-        io.executeBlocking(future -> {
+        String country = ctr != null ? ctr : "";
+        worker.executeBlocking(future -> {
             Stream<Track> tracks = lastfm
-                .getTracks(mbid)
+                .geographicTopTracks(country)
                 .limit(limit);
             resp.setChunked(true);
-            JingleRxViews
-                .artists
+            ViewsHtmlFlow
+                .toptracks
                 .setPrintStream(new HttpResponsePrinter(resp, req.connection(), future))
-                .write(tracks);
+                .write(context(country, limit, tracks));
             resp.end();
             future.complete();
-        }, res -> {
+        }, asyncRes -> {
+            // !!! TO DO: check for errors!
         });
     }
 

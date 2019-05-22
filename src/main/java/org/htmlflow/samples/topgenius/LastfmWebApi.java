@@ -34,16 +34,13 @@ public class LastfmWebApi {
         this.gson = new Gson();
     }
 
-    public Track[] getTopTracks(String artisMbid, int page){
-        String path = String.format(LASTFM_ARTIST_TOP_TRACKS, artisMbid, page);
-        GetTopTracks dto = gson.fromJson(request(path), GetTopTracks.class);
-        return dto.getToptracks().getTrack();
-    }
-
     public Track[] geographicTopTracks(String country, int page){
         String path = String.format(LASTFM_GEOGRAPHIC_TOP_TRACKS, country, page);
         GeographicTopTracks dto = gson.fromJson(request(path), GeographicTopTracks.class);
-        return dto.getTracks().getTrack();
+        if(dto.getTracks() == null)
+            return new Track[0];
+        else
+            return dto.getTracks().getTrack();
     }
 
     /**
@@ -51,10 +48,29 @@ public class LastfmWebApi {
      * Since iterate() returns a lazy sequence then no requests
      * are made until we start iterating through the resulting Iterator.
      */
-    public Stream<Track> getTracks(String artistMbid) {
+    public Stream<Track> geographicTopTracks(String country){
         return IntStream
             .iterate(1, n -> n + 1)
-            .mapToObj(p -> getTopTracks(artistMbid, p))
+            .mapToObj(p -> geographicTopTracks(country, p))
+            .takeWhile(arr -> arr.length != 0)
+            .flatMap(Stream::of);
+    }
+
+    public Track[] artistTopTracks(String artisMbid, int page){
+        String path = String.format(LASTFM_ARTIST_TOP_TRACKS, artisMbid, page);
+        GetTopTracks dto = gson.fromJson(request(path), GetTopTracks.class);
+        return dto.getToptracks().getTrack();
+    }
+
+    /**
+     * Request are performed only on-demand per page.
+     * Since iterate() returns a lazy sequence then no requests
+     * are made until we start iterating through the resulting Iterator.
+     */
+    public Stream<Track> artistTopTracks(String artistMbid) {
+        return IntStream
+            .iterate(1, n -> n + 1)
+            .mapToObj(p -> artistTopTracks(artistMbid, p))
             .takeWhile(arr -> arr.length != 0)
             .flatMap(Stream::of);
     }

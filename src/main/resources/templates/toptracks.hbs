@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+        <title>TopGenius.eu</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <p class="lead">TopGenius.eu</p>
+                <hr>
+                <form class="form-inline" method="get">
+                    <div class="form-group">
+                        <label class="col-form-label">Country:</label>
+                        <input class="form-control" type="text" name="country" id="inputCountry" value='{{country}}'>
+                        <label class="col-form-label">Number of tracks:</label>
+                        <input class="form-control" type="text" name="limit" id="inputLimit" value='{{limit}}'>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="buttonTopTracks">Top Tracks</button>
+                </form>
+            </div>
+                    <table class="table">
+                <tr>
+                    <th>Rank</th>
+                    <th>Track</th>
+                    <th>Listeners</th>
+                </tr>
+                {{#each tracks}}
+                    <tr>
+                        <td>{{@index}}</td>
+                        <td>
+                            <a href='{{url}}' target="_blank">
+                                {{name}}
+                            </a>
+                        </td>
+                        <td>{{listeners}}</td>
+                    </tr>
+                {{/each}}
+            </table>
+        </div>
+    </body>
+</html>
