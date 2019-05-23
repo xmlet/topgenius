@@ -37,7 +37,7 @@ public class ControllerHtmlFlow {
          */
         String ctr = req.getParam("country");
         String str = req.getParam("limit");
-        int limit = str != null ? parseInt(str) : 50;
+        int limit = str != null ? parseInt(str) : 10000;
         String country = ctr != null ? ctr : "";
         worker.executeBlocking(future -> {
             Stream<Track> tracks = lastfm

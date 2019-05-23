@@ -36,7 +36,7 @@ public class ControllerHandlebars {
          */
         String country = req.getParam("country");
         String str = req.getParam("limit");
-        int limit = str != null ? parseInt(str) : 50;
+        int limit = str != null ? parseInt(str) : 10000;
         worker.executeBlocking(future -> {
             List<Track> tracks = lastfm
                 .geographicTopTracks(country)

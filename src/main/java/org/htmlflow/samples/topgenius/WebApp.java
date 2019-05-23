@@ -40,7 +40,7 @@ public class WebApp {
          * Mount controllers.
          */
         router.route("/*").handler(StaticHandler.create("public"));
-        router.route("/handlebars/").handler(ctrHbs::toptracksHandler);
+        router.route("/handlebars").handler(ctrHbs::toptracksHandler);
         router.route("/htmlflow").handler(ctrHfl::toptracksHandler);
         /**
          * Create and run HTTP server.
