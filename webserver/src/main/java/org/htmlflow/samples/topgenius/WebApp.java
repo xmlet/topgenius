@@ -48,7 +48,7 @@ public class WebApp {
         String port = System.getProperty("server.port", "3000");
         vertx
                 .createHttpServer()
-                .requestHandler(router::accept)
+                .requestHandler(router)
                 .listen(Integer.parseInt(port));
     }
 }
