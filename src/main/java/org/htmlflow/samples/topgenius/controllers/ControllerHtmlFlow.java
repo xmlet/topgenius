@@ -3,6 +3,7 @@ package org.htmlflow.samples.topgenius.controllers;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpConnection;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -11,9 +12,9 @@ import org.htmlflow.samples.topgenius.LastfmWebApi;
 import org.htmlflow.samples.topgenius.model.Track;
 import org.htmlflow.samples.topgenius.views.ViewsHtmlFlow;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
@@ -39,48 +40,80 @@ public class ControllerHtmlFlow {
         String str = req.getParam("limit");
         int limit = str != null ? parseInt(str) : 10000;
         String country = ctr != null ? ctr : "";
-        worker.executeBlocking(future -> {
+        worker.<HttpResponsePrinter>executeBlocking(future -> {
             Stream<Track> tracks = lastfm
                 .geographicTopTracks(country)
                 .limit(limit);
             resp.setChunked(true);
+            HttpResponsePrinter out = new HttpResponsePrinter(resp, req.connection(), future);
             ViewsHtmlFlow
                 .toptracks
-                .setPrintStream(new HttpResponsePrinter(resp, req.connection(), future))
+                .setPrintStream(out)
                 .write(context(country, limit, tracks));
-            resp.end();
-            future.complete();
+            if(!future.isComplete())
+                future.complete(out);
         }, asyncRes -> {
-            // !!! TO DO: check for errors!
+            if(asyncRes.failed())
+                resp.end(asyncRes.cause().toString());
+            else
+                asyncRes.result().close(); // flush + close
         });
     }
 
     static class HttpResponsePrinter extends PrintStream {
+        final HttpServerResponse resp;
+        final Future<HttpResponsePrinter> future;
+        Buffer buffer;
+        static final int MAX_SIZE = 1024*16;
+        int index;
 
-        public HttpResponsePrinter(HttpServerResponse resp, HttpConnection connection, Future<Object> future) {
-            super(responseOutputStream(resp, connection, future));
-        }
 
-        private static OutputStream responseOutputStream(HttpServerResponse resp, HttpConnection connection, Future<Object> future) {
-            AtomicBoolean connectionFailed = new AtomicBoolean(false);
+        public HttpResponsePrinter(
+            HttpServerResponse resp,
+            HttpConnection connection,
+            Future<HttpResponsePrinter> future)
+        {
+            super(new NullOutputStream());
+            this.resp = resp;
+            this.future = future;
+            this.buffer = Buffer.buffer(MAX_SIZE);
+
             connection.exceptionHandler(thr -> {
                 if(!future.isComplete())
                     future.fail("Connection reset by peer!");
-                connectionFailed.set(true);
             });
-            return new OutputStream() {
-                @Override
-                public void write(int b) {
-                    if(connectionFailed.get())
-                        return;
-                    char c = (char) b;
-                    try{
-                        resp.write(String.valueOf(c));
-                    } catch (Exception e){
-                        resp.close();
-                    }
-                }
-            };
+        }
+
+        @Override
+        public void write(byte[] buf, int off, int len) {
+            buffer.appendBytes(buf, off, len);
+            index += len;
+            if(index >= MAX_SIZE) flushBuffer();
+        }
+
+        @Override
+        public void close() {
+            flushBuffer();
+            resp.end();
+            resp.close();
+        }
+
+        void flushBuffer() {
+            try{
+                resp.write(buffer);
+                buffer = Buffer.buffer(MAX_SIZE);
+                index = 0;
+            } catch (Exception e){
+                resp.close();
+                future.fail(e);
+            }
+        }
+    }
+
+    static class NullOutputStream extends OutputStream {
+        @Override
+        public void write(int b) throws IOException {
+            throw new UnsupportedOperationException();
         }
     }
 }
