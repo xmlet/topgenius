@@ -32,8 +32,8 @@ stage.dependsOn(copyToLib)
 dependencies {
     compile group: 'org.slf4j', name: 'slf4j-jdk14', version: '1.7.25'
     compile 'com.google.code.gson:gson:2.8.5'
-    compile 'io.vertx:vertx-web-templ-handlebars:3.5.1'
-    compile 'io.vertx:vertx-web:3.5.1'
+    compile 'io.vertx:vertx-web-templ-handlebars:3.7.1'
+    compile 'io.vertx:vertx-web:3.7.1'
     compile 'com.github.xmlet:htmlflow:3.2'
 
     // Use JUnit test framework

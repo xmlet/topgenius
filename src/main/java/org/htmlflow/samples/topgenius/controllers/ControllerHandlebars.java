@@ -5,26 +5,26 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.templ.HandlebarsTemplateEngine;
-import io.vertx.ext.web.templ.TemplateEngine;
+import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 import org.htmlflow.samples.topgenius.LastfmWebApi;
 import org.htmlflow.samples.topgenius.model.Track;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Map;
 
 import static java.lang.Integer.parseInt;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 public class ControllerHandlebars {
 
     private final LastfmWebApi lastfm;
-    private final TemplateEngine engine = HandlebarsTemplateEngine.create();
+    private final HandlebarsTemplateEngine engine;
     private Vertx worker = Vertx.vertx(new VertxOptions().setWorkerPoolSize(40));
 
-    public ControllerHandlebars(LastfmWebApi lastfm) {
+    public ControllerHandlebars(LastfmWebApi lastfm, Vertx vertx) {
         this.lastfm = lastfm;
+        this.engine = HandlebarsTemplateEngine.create(vertx);
     }
 
     public void toptracksHandler(RoutingContext ctx) {
@@ -42,26 +42,27 @@ public class ControllerHandlebars {
                 .geographicTopTracks(country)
                 .limit(limit)
                 .collect(toList());
-            context(ctx, country, limit, tracks);
-            render("/toptracks.hbs", ctx, resp);
+            Map<String, Object> data = context(country, limit, tracks);
+            render("/toptracks.hbs", data, resp);
         }, ayncRes -> {
             // !!! TO DO: check for errors!
         });
     }
 
-    static RoutingContext context(RoutingContext ctx, String country, int limit, List<Track> tracks) {
-        ctx.put("country", country);
-        ctx.put("limit", limit);
-        ctx.put("tracks", tracks);
-        return ctx;
+    static Map<String, Object> context(String country, int limit, List<Track> tracks) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("country", country);
+        data.put("limit", limit);
+        data.put("tracks", tracks);
+        return data;
     }
 
-    private void render(String path, RoutingContext ctx, HttpServerResponse resp) {
-        engine.render(ctx, "templates", path, view -> {
+    private void render(String path, Map<String, Object>  ctx, HttpServerResponse resp) {
+        engine.render(ctx, "templates" + path, view -> {
             if(view.succeeded())
                 resp.end(view.result());
             else
-                ctx.fail(view.cause());
+                resp.setStatusCode(500).end(view.cause().toString());
         });
     }
 }

@@ -26,16 +26,16 @@ import org.htmlflow.samples.topgenius.controllers.ControllerHtmlFlow;
 public class WebApp {
     public static void main(String[] args) throws Exception {
         /**
-         * Setup Vertex and web controller.
-         */
-        LastfmWebApi lastfm = new LastfmWebApi();
-        ControllerHandlebars ctrHbs = new ControllerHandlebars(lastfm);
-        ControllerHtmlFlow ctrHfl = new ControllerHtmlFlow(lastfm);
-        /**
          * Setup Vertex and router
          */
         Vertx vertx = Vertx.vertx();
         Router router = Router.router(vertx);
+        /**
+         * Setup web controller.
+         */
+        LastfmWebApi lastfm = new LastfmWebApi();
+        ControllerHandlebars ctrHbs = new ControllerHandlebars(lastfm, vertx);
+        ControllerHtmlFlow ctrHfl = new ControllerHtmlFlow(lastfm);
         /**
          * Mount controllers.
          */
