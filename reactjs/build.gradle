@@ -35,4 +35,36 @@ npm_run_build {
     outputs.dir 'build'
 }
 
-assemble.dependsOn npm_run_build
+task packageTopgeniusReact(type: Zip) {
+    dependsOn npm_run_build
+    archiveBaseName = 'topgenius-reactjs'
+    archiveExtension = 'jar'
+    destinationDirectory =  file("${projectDir}/build_packageTopgeniusReact")
+    from('build') {
+        // optional path under which output will be visible in Java classpath, e.g. static resources path
+        into 'public'
+    }
+
+    doFirst {
+        ant.move file: "${projectDir}/build/index.html",
+                 todir: 'build/react'
+    }
+}
+
+configurations {
+    npmResources
+}
+configurations.default.extendsFrom(configurations.npmResources)
+
+artifacts {
+    npmResources(packageTopgeniusReact.archivePath) {
+        builtBy packageTopgeniusReact
+        type "jar"
+    }
+}
+
+clean {
+    delete packageTopgeniusReact.archivePath
+}
+
+assemble.dependsOn packageTopgeniusReact

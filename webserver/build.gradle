@@ -36,6 +36,8 @@ dependencies {
     compile 'io.vertx:vertx-web:3.7.1'
     compile 'com.github.xmlet:htmlflow:3.2'
 
+    runtimeOnly project(':reactjs')
+
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
 }

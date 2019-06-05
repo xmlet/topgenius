@@ -1,6 +1,7 @@
 .gradle
 .vertx
 build/
+build_packageTopgeniusReact
 
 # Ignore InteliJ metadata
 .idea
