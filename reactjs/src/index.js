@@ -7,8 +7,20 @@ import GeographicTopTracks from './GeographicTopTracks'
 class App extends React.Component {
     constructor(props) {
         super(props)
-        this.state = { 'fetching': false }
+        this.state = { 
+            'fetching': false,
+            'env': null
+        }
         this.geoTopTracks = React.createRef();
+    }
+
+    componentWillMount() {
+        fetch('/env')
+            .then(resp => resp.json())
+            .then(data => this.setState({
+                'fetching': this.state.fetching,
+                'env': data.env
+            }))
     }
 
     tracksHandler(country, limit) {
@@ -16,6 +28,9 @@ class App extends React.Component {
     }
 
     render() {
+        if (!this.state.env) {
+            return <ReactLoading type={"bars"} color="#666666" />
+        }
         return (
             <div>
                 <div class="jumbotron">
@@ -29,6 +44,7 @@ class App extends React.Component {
                 <br />
                 <GeographicTopTracks 
                     ref={this.geoTopTracks}
+                    env={this.state.env}
                     updateFetching={(fetching => this.setState({ 'fetching': fetching }))} 
                 />
             </div>

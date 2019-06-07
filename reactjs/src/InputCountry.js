@@ -4,7 +4,7 @@ class InputCountry  extends React.Component {
     constructor(props) {
         super(props)
         this.state = { 
-            country: '',
+            country: 'australia',
             limit: '10000'
         } 
     }
