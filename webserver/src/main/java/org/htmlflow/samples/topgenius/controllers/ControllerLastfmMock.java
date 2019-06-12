@@ -1,25 +1,23 @@
 package org.htmlflow.samples.topgenius.controllers;
 
-import com.google.gson.Gson;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import org.htmlflow.samples.topgenius.LastfmWebApiMock;
-import org.htmlflow.samples.topgenius.model.MockGeographicTopTracks;
 import org.htmlflow.samples.topgenius.model.Track;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toList;
+import static org.htmlflow.samples.topgenius.LastfmWebApiMock.jsonGeographicTopTracks;
 
 public class ControllerLastfmMock {
 
     private static final List<Track> australiaTopTracks = new LastfmWebApiMock()
             .geographicTopTracks("australia")
             .collect(toList());
-
-    private static final Gson gson = new Gson();
 
     public static void geographicTopTracks(RoutingContext ctx) {
 
@@ -38,14 +36,18 @@ public class ControllerLastfmMock {
         /**
          * Send response
          */
-        if(page > 0)
-            resp.end(LastfmWebApiMock.jsonGeographicTopTracks(ctr, page));
-        else
-            resp.end(jsonAustraliaTopTracks(limit));
+        if(page > 0) // send a single page
+            resp.end(jsonGeographicTopTracks(ctr, page));
+        else // Send all pages to reach limit
+            jsonAustraliaTopTracks(resp, ctr, limit);
     }
 
-    public static String jsonAustraliaTopTracks(int limit) {
-        List<Track> tracks = australiaTopTracks.subList(0, limit);
-        return gson.toJson(new MockGeographicTopTracks(tracks));
+    public static void jsonAustraliaTopTracks(HttpServerResponse resp, String country, int limit) {
+        resp.setChunked(true);
+        IntStream
+            .rangeClosed(1, limit/50)
+            .mapToObj(page -> jsonGeographicTopTracks(country, page))
+            .forEach(json -> resp.write(json + '\n'));
+        resp.end();
     }
 }

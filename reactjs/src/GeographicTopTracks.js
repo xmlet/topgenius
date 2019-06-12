@@ -1,4 +1,5 @@
 import React from 'react'
+import ndjsonStream from 'can-ndjson-stream'
 
 class GeographicTopTracks extends React.Component {
     /**
@@ -14,7 +15,10 @@ class GeographicTopTracks extends React.Component {
     tracksHandler(country, nrOfTracks) {
         this.setState({ tracks: [] })
         this.props.updateFetching(true)
-        this.geographicTopTracks(country, nrOfTracks, 1)
+        if(this.props.env === 'production')
+            this.geographicTopTracks(country, nrOfTracks, 1)
+        else 
+            this.mockGeographicTopTracks(country, nrOfTracks)
     }
 
     /**
@@ -25,15 +29,23 @@ class GeographicTopTracks extends React.Component {
      * @param {*} country A country name, as defined by the ISO 3166-1 country names standard.
      * @param {*} page The page number.
      */
-    lastfmUrl(country, nrOfTracks, page) {
+    lastfmUrl(country, page) {
         // RESULTS is the number of tracks to fetch per page
-        const RESULTS = this.props.env === 'production' ? 50 : nrOfTracks
-        if(this.props.env !== 'production')  page = -1 // backend should send all tracks in limit, which is equals to nrOfTracks
+        const RESULTS = 50
         const API_KEY = '038cde478fb0eff567330587e8e981a4'
-        const host = this.props.env === 'production'
-                        ? 'http://ws.audioscrobbler.com/2.0/'
-                        : '/lastfmmock'
-        const path = `${host}?method=geo.gettoptracks&country=${country}&page=${page}&limit=${RESULTS}&format=json&api_key=${API_KEY}`
+        const HOST = 'http://ws.audioscrobbler.com/2.0/'
+        const path = `${HOST}?method=geo.gettoptracks&country=${country}&page=${page}&limit=${RESULTS}&format=json&api_key=${API_KEY}`
+        return path
+    }
+    /**
+     * @param {*} country A country name, as defined by the ISO 3166-1 country names standard.
+     * @param {*} nrOfTracks Number of tracks to fetch from mock of Last.fm API
+     */
+    mockLastfmUrl(country, nrOfTracks) {
+        const PAGE = -1 // backend should send all tracks in limit, which is equals to nrOfTracks
+        const API_KEY = '038cde478fb0eff567330587e8e981a4'
+        const HOST = '/lastfmmock'
+        const path = `${HOST}?method=geo.gettoptracks&country=${country}&page=${PAGE}&limit=${nrOfTracks}&format=json&api_key=${API_KEY}`
         return path
     }
 
@@ -42,9 +54,36 @@ class GeographicTopTracks extends React.Component {
      * @param {*} nrOfTracks The maximum number of tracks to fetch.
      * @param {*} page The page number.
      */
+    mockGeographicTopTracks(country, nrOfTracks) {
+        const url = this.mockLastfmUrl(country, nrOfTracks)
+        fetch(url)
+            .then(resp => ndjsonStream(resp.body))
+            .then(strm => {
+                const reader = strm.getReader()
+                const read = (result) => {
+                    if ( result.done ) return this.props.updateFetching(false)
+                    const tracks = result.value.tracks.track
+                    const newTracks = this.state.tracks.concat(tracks)
+                    this.setState({ 'tracks': newTracks })
+                    reader.read().then(read)
+                }
+                reader.read().then(read)
+            })
+            .catch(err => {
+                this.props.updateFetching(false)
+                alert(err.message)
+            })
+    }
+
+
+    /**
+     * @param {*} country A country name, as defined by the ISO 3166-1 country names standard.
+     * @param {*} nrOfTracks The maximum number of tracks to fetch.
+     * @param {*} page The page number.
+     */
     geographicTopTracks(country, nrOfTracks, page) {
         page = page ? page : 1
-        const url = this.lastfmUrl(country, nrOfTracks, page)
+        const url = this.lastfmUrl(country, page)
         fetch(url)
             .then(resp => resp.json())
             .then(data => {
