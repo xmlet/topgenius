@@ -1,5 +1,44 @@
 import React from 'react'
-import ndjsonStream from 'can-ndjson-stream'
+import { EventEmitter } from 'events'
+
+/**
+ * It deals with stream chunks not ending on line boundaries 
+ * and converting from Uint8Array to strings.
+ */
+class NdjsonParser extends EventEmitter {
+    constructor(reader) {
+        super()
+        const self = this
+        const utf8Decoder = new TextDecoder("utf-8")
+        let buffer = ''
+
+        // read() returns a promise that resolves
+        // when a value has been received
+        reader.read().then(function processText ({ value, done }) {
+            if(done) {
+                if(buffer !== '') 
+                    self.emit('data', JSON.parse(buffer))
+                return self.emit('end')
+            }
+            value = value ? utf8Decoder.decode(value) : ""
+            buffer += value
+            let boundary = buffer.indexOf('\n')
+            while (boundary >= 0) {
+                const input = buffer.substring(0, boundary)
+                buffer = buffer.substring(boundary + 1)
+                self.emit('data', JSON.parse(input))
+                boundary = buffer.indexOf('\n')
+            }
+            // Read some more, and call this function again
+            return reader.read().then(processText)
+        })
+    }
+}
+
+function ndjson(reader) {
+    return new NdjsonParser(reader)
+}
+
 
 class GeographicTopTracks extends React.Component {
     /**
@@ -57,17 +96,16 @@ class GeographicTopTracks extends React.Component {
     mockGeographicTopTracks(country, nrOfTracks) {
         const url = this.mockLastfmUrl(country, nrOfTracks)
         fetch(url)
-            .then(resp => ndjsonStream(resp.body))
-            .then(strm => {
-                const reader = strm.getReader()
-                const read = (result) => {
-                    if ( result.done ) return this.props.updateFetching(false)
-                    const tracks = result.value.tracks.track
+            .then(resp => {
+                const reader = ndjson(resp.body.getReader())
+                reader.on('data', obj => {
+                    const tracks = obj.tracks.track
                     const newTracks = this.state.tracks.concat(tracks)
                     this.setState({ 'tracks': newTracks })
-                    reader.read().then(read)
-                }
-                reader.read().then(read)
+                })
+                reader.on('end', () => {
+                    return this.props.updateFetching(false)
+                })
             })
             .catch(err => {
                 this.props.updateFetching(false)
