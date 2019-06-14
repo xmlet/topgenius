@@ -5,40 +5,36 @@ import { EventEmitter } from 'events'
  * It deals with stream chunks not ending on line boundaries 
  * and converting from Uint8Array to strings.
  */
-class NdjsonParser extends EventEmitter {
-    constructor(reader) {
-        super()
-        const self = this
-        const utf8Decoder = new TextDecoder("utf-8")
-        let buffer = ''
+async function* ndjson(reader) {
+    const utf8Decoder = new TextDecoder("utf-8");
+    let {value: chunk, done: readerDone} = await reader.read();
+    chunk = chunk ? utf8Decoder.decode(chunk) : "";
 
-        // read() returns a promise that resolves
-        // when a value has been received
-        reader.read().then(function processText ({ value, done }) {
-            if(done) {
-                if(buffer !== '') 
-                    self.emit('data', JSON.parse(buffer))
-                return self.emit('end')
-            }
-            value = value ? utf8Decoder.decode(value) : ""
-            buffer += value
-            let boundary = buffer.indexOf('\n')
-            while (boundary >= 0) {
-                const input = buffer.substring(0, boundary)
-                buffer = buffer.substring(boundary + 1)
-                self.emit('data', JSON.parse(input))
-                boundary = buffer.indexOf('\n')
-            }
-            // Read some more, and call this function again
-            return reader.read().then(processText)
-        })
+    let re = /\n|\r|\r\n/gm;
+    let startIndex = 0;
+
+    for (;;) {
+        let result = re.exec(chunk);
+        if (!result) {
+        if (readerDone) {
+            break;
+        }
+        let remainder = chunk.substr(startIndex);
+        ({value: chunk, done: readerDone} = await reader.read());
+        chunk = remainder + (chunk ? utf8Decoder.decode(chunk) : "");
+        startIndex = re.lastIndex = 0;
+        continue;
+        }
+        const data = chunk.substring(startIndex, result.index);
+        yield JSON.parse(data)
+        startIndex = re.lastIndex;
+    }
+    if (startIndex < chunk.length) {
+        // last line didn't end in a newline char
+        const data = chunk.substr(startIndex)
+        yield JSON.parse(data)
     }
 }
-
-function ndjson(reader) {
-    return new NdjsonParser(reader)
-}
-
 
 class GeographicTopTracks extends React.Component {
     /**
@@ -93,26 +89,20 @@ class GeographicTopTracks extends React.Component {
      * @param {*} nrOfTracks The maximum number of tracks to fetch.
      * @param {*} page The page number.
      */
-    mockGeographicTopTracks(country, nrOfTracks) {
-        const url = this.mockLastfmUrl(country, nrOfTracks)
-        fetch(url)
-            .then(resp => {
-                const reader = ndjson(resp.body.getReader())
-                reader.on('data', obj => {
-                    const tracks = obj.tracks.track
-                    const newTracks = this.state.tracks.concat(tracks)
-                    this.setState({ 'tracks': newTracks })
-                })
-                reader.on('end', () => {
-                    return this.props.updateFetching(false)
-                })
-            })
-            .catch(err => {
-                this.props.updateFetching(false)
-                alert(err.message)
-            })
+    async mockGeographicTopTracks(country, nrOfTracks) {
+        try {
+            const url = this.mockLastfmUrl(country, nrOfTracks)
+            const resp = await fetch(url)
+            for await (let obj of ndjson(resp.body.getReader())) {
+                const tracks = obj.tracks.track
+                this.setState(prevState => ({ 'tracks': prevState.tracks.concat(tracks) }))
+            }
+        } catch(err) {
+            alert(err.message)    
+        } finally {
+            this.props.updateFetching(false)
+        }
     }
-
 
     /**
      * @param {*} country A country name, as defined by the ISO 3166-1 country names standard.
