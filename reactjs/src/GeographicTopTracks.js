@@ -89,19 +89,23 @@ class GeographicTopTracks extends React.Component {
      * @param {*} nrOfTracks The maximum number of tracks to fetch.
      * @param {*} page The page number.
      */
-    async mockGeographicTopTracks(country, nrOfTracks) {
-        try {
-            const url = this.mockLastfmUrl(country, nrOfTracks)
-            const resp = await fetch(url)
-            for await (let obj of ndjson(resp.body.getReader())) {
-                const tracks = obj.tracks.track
-                this.setState(prevState => ({ 'tracks': prevState.tracks.concat(tracks) }))
-            }
-        } catch(err) {
-            alert(err.message)    
-        } finally {
-            this.props.updateFetching(false)
-        }
+    mockGeographicTopTracks(country, nrOfTracks) {
+        const url = this.mockLastfmUrl(country, nrOfTracks)
+        const self = this
+        fetch(url)
+            .then(resp => {
+                const reader = ndjson(resp.body.getReader())
+                reader.next().then(function cons({value, done}) {
+                    if(done) return self.props.updateFetching(false)
+                    const tracks = value.tracks.track
+                    self.setState(prevState => ({ 'tracks': prevState.tracks.concat(tracks) }))
+                    setTimeout(() => reader.next().then(cons), 0)
+                })
+            })
+            .catch(err => {
+                alert(err.message)  
+                self.props.updateFetching(false)  
+            })
     }
 
     /**
