@@ -2,13 +2,16 @@ package org.htmlflow.samples.topgenius;
 
 import com.google.gson.Gson;
 import org.htmlflow.samples.topgenius.model.GeographicTopTracks;
-import org.junit.Test;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 
 public class LastfmSaveResultsToJsonFile {
     private static final String LASTFM_API_KEY = "038cde478fb0eff567330587e8e981a4";
@@ -19,11 +22,13 @@ public class LastfmSaveResultsToJsonFile {
 
     // @Test
     public void saveAustraliaTopTracks() throws IOException {
+        WebRequest req = new WebRequest();
         Gson gson = new Gson();
         String country = "australia";
         for (int page = 1; true; page++) {
             String path = format(LASTFM_GEOGRAPHIC_TOP_TRACKS, country, page);
-            String body = LastfmWebApi.request(path);
+            InputStream strm = req.get(path).join().body();
+            String body = new BufferedReader(new InputStreamReader(strm)).lines().collect(joining());
             GeographicTopTracks dto = gson.fromJson(body, GeographicTopTracks.class);
             if(dto.getTracks() == null || dto.getTracks().getTrack().length == 0)
                 break;

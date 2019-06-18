@@ -15,6 +15,8 @@ import org.htmlflow.samples.topgenius.views.ViewsHtmlFlow;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
@@ -23,7 +25,10 @@ import static org.htmlflow.samples.topgenius.views.ViewsHtmlFlow.context;
 public class ControllerHtmlFlow {
 
     private final LastfmWebApi lastfm;
-    private Vertx worker = Vertx.vertx(new VertxOptions().setWorkerPoolSize(40));
+    private final Vertx worker = Vertx
+        .vertx(new VertxOptions()
+            .setWorkerPoolSize(40)
+            .setMaxWorkerExecuteTime(Long.MAX_VALUE));
 
     public ControllerHtmlFlow(LastfmWebApi lastfm) {
         this.lastfm = lastfm;
@@ -41,9 +46,11 @@ public class ControllerHtmlFlow {
         int limit = str != null ? parseInt(str) : 10000;
         String country = ctr != null ? ctr : "";
         worker.<HttpResponsePrinter>executeBlocking(future -> {
-            Stream<Track> tracks = lastfm
-                .geographicTopTracks(country)
-                .limit(limit);
+            Stream<Track> tracks = ctr == null
+                ? Stream.empty()
+                : lastfm
+                    .countryTopTracks(country)
+                    .limit(limit);
             resp.setChunked(true);
             HttpResponsePrinter out = new HttpResponsePrinter(resp, req.connection(), future);
             ViewsHtmlFlow
@@ -54,7 +61,7 @@ public class ControllerHtmlFlow {
                 future.complete(out);
         }, asyncRes -> {
             if(asyncRes.failed())
-                resp.end(asyncRes.cause().toString());
+                resp.end(stackTrace(asyncRes.cause()));
             else
                 asyncRes.result().close(); // flush + close
         });
@@ -115,5 +122,11 @@ public class ControllerHtmlFlow {
         public void write(int b) throws IOException {
             throw new UnsupportedOperationException();
         }
+    }
+
+    private static String stackTrace(Throwable err) {
+        StringWriter sw = new StringWriter();
+        err.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
     }
 }
