@@ -18,8 +18,10 @@
 package org.htmlflow.samples.topgenius;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.StaticHandler;
+import org.htmlflow.samples.topgenius.controllers.ControllerCountryCache;
 import org.htmlflow.samples.topgenius.controllers.ControllerHandlebars;
 import org.htmlflow.samples.topgenius.controllers.ControllerHtmlFlow;
 
@@ -38,12 +40,14 @@ public class WebApp {
         lastfm.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
         ControllerHandlebars ctrHbs = new ControllerHandlebars(lastfm, vertx);
         ControllerHtmlFlow ctrHfl = new ControllerHtmlFlow(lastfm);
+        ControllerCountryCache ctrCache = new ControllerCountryCache(lastfm, vertx);
         /**
          * Mount controllers.
          */
         router.route("/*").handler(StaticHandler.create("public"));
-        router.route("/handlebars").handler(ctrHbs::toptracksHandler);
-        router.route("/htmlflow").handler(ctrHfl::toptracksHandler);
+        router.route(HttpMethod.GET, "/handlebars").handler(ctrHbs::toptracksHandler);
+        router.route(HttpMethod.GET, "/htmlflow").handler(ctrHfl::toptracksHandler);
+        router.mountSubRouter("/clearcache", ctrCache.router());
         /**
          * Create and run HTTP server.
          */

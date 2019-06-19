@@ -164,6 +164,27 @@ public class LastfmWebApi {
             .whenComplete((in, err) -> cons.accept(in));
     }
 
+    /**
+     * Removes entry from countryCache for a given country.
+     * All incomplete CFs will be canceled.
+     * Since each CF is created as a downstream from the previous one, then we just need to
+     * cancel the first CF in progress and all dependent CFs will be canceled too.
+     * Each CF will propagate cancellation to its direct downstream and so on.
+     *
+     * @param country
+     */
+    public void clearCacheAndCancelRequests(String country) {
+        country = country.toLowerCase();
+        Pair<Long, List<CompletableFuture<Track[]>>> pair = countryCache.get(country);
+        if(pair == null) return;
+        pair.val
+            .stream()
+            .filter(cf -> !cf.isDone())
+            .findFirst()
+            .ifPresent(cf -> cf.cancel(true));
+        countryCache.remove(country);
+    }
+
     static class Pair<K, V> {
         final K key;
         final V val;

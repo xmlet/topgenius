@@ -70,4 +70,30 @@ public class LastfmWebApiTest {
         System.out.println("REQUESTS: " + count[0]);
         assertTrue(count[0] > prev);
     }
+
+    @Test
+    public void testAndClearCache() throws InterruptedException {
+        LastfmWebApi api = new LastfmWebApi();
+        int[] count = {0};
+        api.onRequest(path -> count[0]++);
+        api.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
+        Track track = api.countryTopTracks("Australia").findFirst().get();
+        int prev = count[0];
+        System.out.println("REQUESTS: " + prev);
+        /*
+         * While sleeping more requests have completed and the count should increase.
+         */
+        Thread.currentThread().sleep(2000);
+        System.out.println("REQUESTS: " + count[0]);
+        assertTrue(count[0] > prev);
+        /*
+         * Clearing the cache and cancelling all further requests the count should
+         * remain on the same value.
+         */
+        api.clearCacheAndCancelRequests("australia");
+        prev = count[0];
+        System.out.println("REQUESTS: " + prev);
+        Thread.currentThread().sleep(2000);
+        assertEquals(prev, count[0]);
+    }
 }

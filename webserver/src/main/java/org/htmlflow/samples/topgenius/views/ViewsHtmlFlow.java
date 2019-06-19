@@ -2,6 +2,7 @@ package org.htmlflow.samples.topgenius.views;
 
 import htmlflow.DynamicHtml;
 import org.htmlflow.samples.topgenius.model.Track;
+import org.xmlet.htmlapifaster.EnumFormmethodMethodType;
 import org.xmlet.htmlapifaster.EnumMethodType;
 import org.xmlet.htmlapifaster.EnumRelType;
 import org.xmlet.htmlapifaster.EnumTypeButtonType;
@@ -32,7 +33,7 @@ public class ViewsHtmlFlow {
                             .attrClass("jumbotron")
                             .p().attrClass("lead").text("TopGenius.eu").__()
                             .hr().__()
-                            .form().attrClass("form-inline").attrMethod(EnumMethodType.GET)
+                            .form().attrClass("form-inline")
                                 .div().attrClass("form-group")
                                     .label().attrClass("col-form-label").text("Country:").__()
                                     .input()
@@ -42,7 +43,7 @@ public class ViewsHtmlFlow {
                                         .attrId("inputCountry")
                                         .attrValue(ctx.country)
                                     .__()
-                                    .label().attrClass("col-form-label").text("Number of tracks:").__()
+                                    .label().attrClass("col-form-label").text("Limit:").__()
                                     .input()
                                         .attrClass("form-control")
                                         .attrType(EnumTypeInputType.TEXT)
@@ -52,10 +53,19 @@ public class ViewsHtmlFlow {
                                     .__()
                                 .__()
                                 .button()
+                                    .attrFormmethod(EnumFormmethodMethodType.GET)
                                     .attrType(EnumTypeButtonType.SUBMIT)
                                     .attrClass("btn btn-primary")
                                     .attrId("buttonTopTracks")
                                     .text("Top Tracks")
+                                .__()
+                                .button()
+                                    .attrFormmethod(EnumFormmethodMethodType.POST)
+                                    .attrFormaction("/clearcache/htmlflow")
+                                    .attrType(EnumTypeButtonType.SUBMIT)
+                                    .attrClass("btn btn-primary")
+                                    .attrId("buttonClearCache")
+                                    .text("Clear Cache for " + ctx.country)
                                 .__()
                             .__() // form
                         .__() // div Jumbotron
