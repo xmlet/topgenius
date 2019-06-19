@@ -24,6 +24,7 @@ import io.vertx.ext.web.handler.StaticHandler;
 import org.htmlflow.samples.topgenius.controllers.ControllerCountryCache;
 import org.htmlflow.samples.topgenius.controllers.ControllerHandlebars;
 import org.htmlflow.samples.topgenius.controllers.ControllerHtmlFlow;
+import org.htmlflow.samples.topgenius.controllers.ControllerTopgeniusApi;
 
 public class WebApp {
 
@@ -41,12 +42,14 @@ public class WebApp {
         ControllerHandlebars ctrHbs = new ControllerHandlebars(lastfm, vertx);
         ControllerHtmlFlow ctrHfl = new ControllerHtmlFlow(lastfm);
         ControllerCountryCache ctrCache = new ControllerCountryCache(lastfm, vertx);
+        ControllerTopgeniusApi ctrApi = new ControllerTopgeniusApi(lastfm, vertx);
         /**
          * Mount controllers.
          */
         router.route("/*").handler(StaticHandler.create("public"));
         router.route(HttpMethod.GET, "/handlebars").handler(ctrHbs::toptracksHandler);
         router.route(HttpMethod.GET, "/htmlflow").handler(ctrHfl::toptracksHandler);
+        router.mountSubRouter("/api", ctrApi.router());
         router.mountSubRouter("/clearcache", ctrCache.router());
         /**
          * Create and run HTTP server.

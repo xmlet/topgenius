@@ -48,7 +48,7 @@ public class ControllerHtmlFlow {
         int limit = str != null ? parseInt(str) : 10000;
         String country = ctr != null ? ctr : "";
         worker.<HttpResponsePrinter>executeBlocking(future -> {
-            Stream<Track> tracks = ctr == null
+            Stream<Track> tracks = country == null || country.isBlank()
                 ? Stream.empty()
                 : lastfm
                     .countryTopTracks(country)

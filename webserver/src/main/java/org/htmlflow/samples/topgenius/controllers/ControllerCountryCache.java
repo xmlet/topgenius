@@ -33,7 +33,8 @@ public class ControllerCountryCache {
          */
         String country = req.getParam("country");
         String from = req.getParam("from");
-        if(country != null) lastfm.clearCacheAndCancelRequests(country);
+        if(country != null && !country.isBlank())
+            lastfm.clearCacheAndCancelRequests(country);
         resp.putHeader("location", "/" + from).setStatusCode(303).end();
     }
 

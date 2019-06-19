@@ -1,6 +1,5 @@
 package org.htmlflow.samples.topgenius;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -17,8 +16,8 @@ public class WebRequest implements AsyncRequest {
     }
 
     @Override
-    public CompletableFuture<HttpResponse<InputStream>> get(String path) {
+    public CompletableFuture<HttpResponse<String>> get(String path) {
         return httpClient
-            .sendAsync(request(path), BodyHandlers.ofInputStream());
+            .sendAsync(request(path), BodyHandlers.ofString());
     }
 }

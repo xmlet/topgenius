@@ -11,7 +11,12 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 public class LastfmExpected {
 
@@ -38,6 +43,25 @@ public class LastfmExpected {
         return res;
     }
 
+    static List<String> expectedCountryPages(String country, int limit) throws IOException {
+        final String path = LASTFM_HOST + LASTFM_GEOGRAPHIC_TOP_TRACKS;
+        final int pages = limit / 50;
+        return IntStream
+            .rangeClosed(1, pages)
+            .mapToObj(page -> urlFetch(country, page))
+            .collect(toList());
+    }
+    private static String urlFetch(String country, int page) {
+        try {
+            final String path = LASTFM_HOST + LASTFM_GEOGRAPHIC_TOP_TRACKS;
+            String url = String.format(path, country, page, LASTFM_API_KEY);
+            InputStream in = new URL(url).openStream();
+            return new BufferedReader(new InputStreamReader(in)).lines().collect(joining());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     static String expectedCountryTopTrack(String country, int page) throws IOException {
         final String path = LASTFM_HOST + LASTFM_GEOGRAPHIC_TOP_TRACKS;
         String url = String.format(path, country, page, LASTFM_API_KEY);
@@ -55,12 +79,11 @@ public class LastfmExpected {
         return res;
     }
     static int expectedCountryPages(String country) throws IOException {
-        final String path = LASTFM_HOST + LASTFM_GEOGRAPHIC_TOP_TRACKS;
-        String url = String.format(path, country, 1, LASTFM_API_KEY);
         try {
-            Method geoTopTracks = LastfmWebApi.class.getDeclaredMethod("geoTopTracks", String.class);
+            Method geoTopTracks = LastfmWebApi.class.getDeclaredMethod("geoTopTracks", String.class, int.class);
             geoTopTracks.setAccessible(true);
-            var dto = (CompletableFuture<GeographicTopTracks>) geoTopTracks.invoke(new LastfmWebApi(), url);
+            var json = (CompletableFuture<String>) geoTopTracks.invoke(new LastfmWebApi(), country, 1);
+            var dto = json.thenApply(body -> new Gson().fromJson(body, GeographicTopTracks.class));
             return dto.join().getTracks().getAttr().getTotalPages();
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);

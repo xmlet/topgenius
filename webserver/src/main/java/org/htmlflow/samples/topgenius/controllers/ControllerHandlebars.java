@@ -47,7 +47,7 @@ public class ControllerHandlebars {
         String str = req.getParam("limit");
         int limit = str != null ? parseInt(str) : 10000;
         worker.<Buffer>executeBlocking(future -> {
-            List<Track> tracks = country == null
+            List<Track> tracks = country == null || country.isBlank()
                 ? emptyList()
                 : lastfm
                     .countryTopTracks(country)

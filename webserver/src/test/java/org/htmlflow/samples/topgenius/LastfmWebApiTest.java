@@ -1,14 +1,12 @@
 package org.htmlflow.samples.topgenius;
 
-import org.htmlflow.samples.topgenius.LastfmWebApi.Pair;
+import org.htmlflow.samples.topgenius.LastfmWebApi.TtlResponse;
 import org.htmlflow.samples.topgenius.model.Track;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import static org.htmlflow.samples.topgenius.LastfmExpected.expectedArtistTopTrack;
 import static org.htmlflow.samples.topgenius.LastfmExpected.expectedCountryPages;
@@ -55,8 +53,9 @@ public class LastfmWebApiTest {
          */
         Field cache = LastfmWebApi.class.getDeclaredField("countryCache");
         cache.setAccessible(true);
-        var map = (Map<String, Pair<Long, List<CompletableFuture<Track[]>>>>) cache.get(api);
-        assertEquals(ausPages, map.get("australia").val.size());
+        var map = (Map<String, TtlResponse>) cache.get(api);
+        assertEquals(ausPages, map.get("australia").json.size());
+        assertEquals(ausPages, map.get("australia").tracks.size());
         /*
          * Running again should get requests from internal cache of CFs.
          * Skipping more tracks we have to wait for completion of further requests.
