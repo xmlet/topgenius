@@ -12,12 +12,12 @@ import org.htmlflow.samples.topgenius.model.Track;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static java.lang.Integer.parseInt;
+import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
@@ -36,6 +36,7 @@ public class ControllerHandlebars {
     }
 
     public void toptracksHandler(RoutingContext ctx) {
+        long begin = currentTimeMillis();
         HttpServerRequest req = ctx.request();
         HttpServerResponse resp = ctx.response();
         resp.putHeader("content-type", "text/html");
@@ -52,8 +53,7 @@ public class ControllerHandlebars {
                     .countryTopTracks(country)
                     .limit(limit)
                     .collect(toList());
-            Map<String, Object> data = context(country, limit, tracks);
-            engine.render(data, "templates/toptracks.hbs", view -> {
+            engine.render(toptracksContext(tracks), "templates/toptracks.hbs", view -> {
                 if(view.succeeded())
                     future.complete(view.result());
                 else
@@ -61,32 +61,41 @@ public class ControllerHandlebars {
             });
         }, ares -> {
             if(ares.succeeded())
-                resp.end(ares.result());
+                sendTopTracks(resp, country, limit, ares.result(), begin);
             else
                 resp.setStatusCode(500).end(stackTrace(ares.cause()));
         });
+    }
+
+    private void sendTopTracks(HttpServerResponse resp, String country, int limit, Buffer toptracks, long begin) {
+        Map<String, Object> data = mainContext(country, limit, toptracks.toString(), begin);
+        engine.render(data, "templates/main.hbs", view -> {
+                if(view.succeeded())
+                    resp.end(view.result());
+                else
+                    resp.setStatusCode(500).end(stackTrace(view.cause()));
+            });
+    }
+
+    static Map<String, Object> mainContext(String country, int limit, String toptracks, long begin) {
+        Map<String, Object> data = new HashMap<>();
+        double serverDuration = (currentTimeMillis() - begin) / 1000.0;
+        data.put("country", country);
+        data.put("limit", limit);
+        data.put("toptracks", toptracks);
+        data.put("serverDuration", serverDuration);
+        return data;
+    }
+
+    static Map<String, Object> toptracksContext(List<Track> tracks) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("tracks", tracks);
+        return data;
     }
 
     private static String stackTrace(Throwable err) {
         StringWriter sw = new StringWriter();
         err.printStackTrace(new PrintWriter(sw));
         return sw.toString();
-    }
-
-    static Map<String, Object> context(String country, int limit, List<Track> tracks) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("country", country);
-        data.put("limit", limit);
-        data.put("tracks", tracks);
-        return data;
-    }
-
-    private void render(String path, Map<String, Object>  ctx, HttpServerResponse resp) {
-        engine.render(ctx, "templates" + path, view -> {
-            if(view.succeeded())
-                resp.end(view.result());
-            else
-                resp.setStatusCode(500).end(view.cause().toString());
-        });
     }
 }

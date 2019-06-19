@@ -9,6 +9,8 @@ import org.xmlet.htmlapifaster.EnumTypeInputType;
 
 import java.util.stream.Stream;
 
+import static java.lang.System.currentTimeMillis;
+
 public class ViewsHtmlFlow {
 
     public static DynamicHtml<TopTracksContext> toptracks = DynamicHtml.view(ViewsHtmlFlow::toptracksTemplate);
@@ -57,6 +59,12 @@ public class ViewsHtmlFlow {
                                 .__()
                             .__() // form
                         .__() // div Jumbotron
+                        .p()
+                            .strong().text("Server processing time:").__()
+                            .text((currentTimeMillis() - ctx.begin) / 1000.0)
+                            .text(" ms for ")
+                            .text(ctx.country)
+                        .__()// p
                         .table()
                             .attrClass("table")
                             .tr()
@@ -88,19 +96,21 @@ public class ViewsHtmlFlow {
             .__();
     }
 
-    public static TopTracksContext context(String country, int limit, Stream<Track> tracks) {
-        return new TopTracksContext(country, limit, tracks);
+    public static TopTracksContext context(String country, int limit, Stream<Track> tracks, long begin) {
+        return new TopTracksContext(country, limit, tracks, begin);
     }
 
     public static class TopTracksContext {
         final String country;
         final int limit;
         final Stream<Track> tracks;
+        private final long begin;
 
-        public TopTracksContext(String country, int limit, Stream<Track> tracks) {
+        public TopTracksContext(String country, int limit, Stream<Track> tracks, long begin) {
             this.country = country;
             this.limit = limit;
             this.tracks = tracks;
+            this.begin = begin;
         }
     }
 }

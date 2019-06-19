@@ -20,6 +20,7 @@ import java.io.StringWriter;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
+import static java.lang.System.currentTimeMillis;
 import static org.htmlflow.samples.topgenius.views.ViewsHtmlFlow.context;
 
 public class ControllerHtmlFlow {
@@ -35,6 +36,7 @@ public class ControllerHtmlFlow {
     }
 
     public void toptracksHandler(RoutingContext ctx) {
+        long begin = currentTimeMillis();
         HttpServerRequest req = ctx.request();
         HttpServerResponse resp = ctx.response();
         resp.putHeader("content-type", "text/html");
@@ -56,7 +58,7 @@ public class ControllerHtmlFlow {
             ViewsHtmlFlow
                 .toptracks
                 .setPrintStream(out)
-                .write(context(country, limit, tracks));
+                .write(context(country, limit, tracks, begin));
             if(!future.isComplete())
                 future.complete(out);
         }, asyncRes -> {

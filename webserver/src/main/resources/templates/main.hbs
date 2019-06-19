@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+        <title>TopGenius.eu</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <p class="lead">TopGenius.eu</p>
+                <hr>
+                <form class="form-inline" method="get">
+                    <div class="form-group">
+                        <label class="col-form-label">Country:</label>
+                        <input class="form-control" type="text" name="country" id="inputCountry" value='{{country}}'>
+                        <label class="col-form-label">Number of tracks:</label>
+                        <input class="form-control" type="text" name="limit" id="inputLimit" value='{{limit}}'>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="buttonTopTracks">Top Tracks</button>
+                </form>
+                <br>
+                <small>
+                    High number of tracks increases the server latency that has to wait
+                    for the completion of all pages fetched from LastFM API.
+                </small>
+                <small>
+                    Use a number of tracks lower than a thousand tracks to get some data about local
+                    top tracks.
+                </small>
+            </div>
+            <p><strong>Server processing time</strong>: {{serverDuration}} ms for {{country}}</p>
+            {{{toptracks}}}
+        </div>
+        <hr>
+        <footer class="footer mt-auto py-3">
+            <div class="container">
+                <a href="https://www.last.fm" target="_blank">
+                    <span class="text-muted">Powered by AudioScrobbler</span>
+                    <img src="/img/AudioScrobbler.png" height="40">
+                </a>
+          </div>
+        </footer>
+    </body>
+</html>
