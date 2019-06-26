@@ -1,5 +1,4 @@
 import React from 'react'
-import { EventEmitter } from 'events'
 
 /**
  * It deals with stream chunks not ending on line boundaries 
@@ -38,68 +37,58 @@ async function* ndjson(reader) {
 
 class GeographicTopTracks extends React.Component {
     /**
-     * Properties contains an updateFetching handle,r which is: (boolean) => void,
-     * and an env string with: "production" or "mock".
+     * Properties contains an updateFetching handler which is: (boolean) => void.
+     * 
      * @param {*} props
      */
     constructor(props) {
         super(props)
-        this.state = { tracks: [] }
+        this.state = { 
+            tracks: [],
+            cancel: false
+        }
     }
 
     tracksHandler(country, nrOfTracks) {
         this.setState({ tracks: [] })
         this.props.updateFetching(true)
-        if(this.props.env === 'production')
-            this.geographicTopTracks(country, nrOfTracks, 1)
-        else 
-            this.mockGeographicTopTracks(country, nrOfTracks)
+        this.geographicTopTracks(country, nrOfTracks, 1)
     }
 
-    /**
-     * There is a BUG in LastFM Web API that sometimes returns more results than those
-     * specified in the limit query parameter.
-     * Sometimes the page 2 returns 100 rather than 50 records for a limit of 50.
-     * 
-     * @param {*} country A country name, as defined by the ISO 3166-1 country names standard.
-     * @param {*} page The page number.
-     */
-    lastfmUrl(country, page) {
-        // RESULTS is the number of tracks to fetch per page
-        const RESULTS = 50
-        const API_KEY = '038cde478fb0eff567330587e8e981a4'
-        const HOST = 'http://ws.audioscrobbler.com/2.0/'
-        const path = `${HOST}?method=geo.gettoptracks&country=${country}&page=${page}&limit=${RESULTS}&format=json&api_key=${API_KEY}`
-        return path
+    cancelHandler() {
+        this.setState(prevState => ({ 'tracks': prevState.tracks, 'cancel': true }))
     }
+
     /**
      * @param {*} country A country name, as defined by the ISO 3166-1 country names standard.
      * @param {*} nrOfTracks Number of tracks to fetch from mock of Last.fm API
      */
-    mockLastfmUrl(country, nrOfTracks) {
-        const PAGE = -1 // backend should send all tracks in limit, which is equals to nrOfTracks
-        const API_KEY = '038cde478fb0eff567330587e8e981a4'
-        const HOST = '/lastfmmock'
-        const path = `${HOST}?method=geo.gettoptracks&country=${country}&page=${PAGE}&limit=${nrOfTracks}&format=json&api_key=${API_KEY}`
-        return path
+    lastfmUrl(country, nrOfTracks) {
+        const PATH = '/api/toptracks'
+        const url = `${PATH}?country=${country}&limit=${nrOfTracks}`
+        return url
     }
 
     /**
      * @param {*} country A country name, as defined by the ISO 3166-1 country names standard.
      * @param {*} nrOfTracks The maximum number of tracks to fetch.
-     * @param {*} page The page number.
      */
-    mockGeographicTopTracks(country, nrOfTracks) {
-        const url = this.mockLastfmUrl(country, nrOfTracks)
+    geographicTopTracks(country, nrOfTracks) {
+        const url = this.lastfmUrl(country, nrOfTracks)
         const self = this
+        this.setState({ 'tracks': [], 'cancel': false })
         fetch(url)
             .then(resp => {
                 const reader = ndjson(resp.body.getReader())
                 reader.next().then(function cons({value, done}) {
-                    if(done) return self.props.updateFetching(false)
+                    if(done || self.state.cancel) return self.props.updateFetching(false)
                     const tracks = value.tracks.track
-                    self.setState(prevState => ({ 'tracks': prevState.tracks.concat(tracks) }))
-                    setTimeout(() => reader.next().then(cons), 0)
+                    self.setState(prevState => {
+                        const newTracks = prevState.tracks.concat(tracks)
+                        if (newTracks.length < nrOfTracks) setTimeout(() => reader.next().then(cons), 0)
+                        else self.props.updateFetching(false)
+                        return { 'tracks': newTracks, 'cancel': prevState.cancel }
+                    })
                 })
             })
             .catch(err => {
@@ -108,45 +97,6 @@ class GeographicTopTracks extends React.Component {
             })
     }
 
-    /**
-     * @param {*} country A country name, as defined by the ISO 3166-1 country names standard.
-     * @param {*} nrOfTracks The maximum number of tracks to fetch.
-     * @param {*} page The page number.
-     */
-    geographicTopTracks(country, nrOfTracks, page) {
-        page = page ? page : 1
-        const url = this.lastfmUrl(country, page)
-        fetch(url)
-            .then(resp => resp.json())
-            .then(data => {
-                if(!data.tracks) throw Error('No tracks for given country!')
-                return data.tracks.track
-            })
-            .then(tracks => this.updateState(tracks, country, nrOfTracks, page))
-            .catch(err => {
-                this.props.updateFetching(false)
-                alert(err.message)
-            })
-    }
-    /**
-     * @param {*} tracks New tracks to concatenate on state.
-     * @param {*} country A country name, as defined by the ISO 3166-1 country names standard.
-     * @param {*} page The page number.
-     */
-    updateState(tracks, country, nrOfTracks, page) {
-        if(tracks.length === 0) 
-            return this.props.updateFetching(false)
-        const maxSize = nrOfTracks - this.state.tracks.length
-        this.props.updateFetching(true)
-        if(tracks.length > maxSize) { // base case
-            tracks = tracks.slice(0, maxSize)
-            this.props.updateFetching(false)
-        } else {
-            const newTracks = this.state.tracks.concat(tracks)
-            this.setState({ 'tracks': newTracks })
-            this.geographicTopTracks(country, nrOfTracks, page + 1)
-        }
-    }
     render() {
         return (
             <div>

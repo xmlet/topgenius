@@ -39,6 +39,7 @@ public class ControllerTopgeniusApi {
     public void clearcacheHandler(RoutingContext ctx) {
         HttpServerRequest req = ctx.request();
         HttpServerResponse resp = ctx.response();
+        resp.putHeader("Access-Control-Allow-Origin", "http://localhost:3001");
         /**
          * Parse query-string parameters
          */
@@ -57,6 +58,7 @@ public class ControllerTopgeniusApi {
         HttpServerRequest req = ctx.request();
         HttpServerResponse resp = ctx.response();
         resp.putHeader("content-type", "application/stream+json");
+        resp.putHeader("Access-Control-Allow-Origin", "http://localhost:3001");
         resp.setChunked(true);
         /**
          * Parse query-string parameters
