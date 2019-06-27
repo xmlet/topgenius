@@ -15,7 +15,6 @@ import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 
@@ -32,7 +31,8 @@ public class LastfmWebApi {
                                                     + LASTFM_API_KEY;
     private static final long TTL = 1000*60*60*24;
 
-    private final Map<String, TtlResponse> countryCache;
+    private final Map<String, List<CompletableFuture<String>>> cacheJsonPages;
+    private final Map<String, List<CompletableFuture<Track[]>>> cacheTracksPages;
     private final Gson gson;
     private AsyncRequest req;
 
@@ -44,7 +44,44 @@ public class LastfmWebApi {
     public LastfmWebApi(AsyncRequest req) {
         this.gson = new Gson();
         this.req = req;
-        this.countryCache = new HashMap<>();
+        this.cacheJsonPages = new HashMap<>();
+        this.cacheTracksPages = new HashMap<>();
+    }
+
+    /**
+     * Top tracks of an artist given its MBID.
+     */
+    public CompletableFuture<Track[]> artistTopTracks(String artisMbid, int page){
+        String path = String.format(LASTFM_ARTIST_TOP_TRACKS, artisMbid, page);
+        return req
+            .get(path)
+            .thenApply(HttpResponse::body)
+            .thenApply(body -> {
+                GetTopTracks dto = gson.fromJson(body, GetTopTracks.class);
+                return dto.getToptracks().getTrack();
+            });
+    }
+
+    /**
+     * Returns a stream of pages in JSON format.
+     */
+    public Stream<String> countryTopTracksInJsonPages(String country){
+        return getOrCreateJsonPages(country)
+            .stream()
+            .map(CompletableFuture::join);
+    }
+
+    /**
+     * All requests are performed sequentially.
+     * Yet, requests are asynchronous and we do not wait for response completion.
+     */
+    public Stream<Track> countryTopTracks(String country){
+        return getOrCreateTracksPages(country)
+            .stream()
+            .map(CompletableFuture::join)
+            .takeWhile(arr -> arr.length != 0)
+            .flatMap(Stream::of);
+
     }
 
     private static String geoTopTracksPath(String country, int page) {
@@ -57,61 +94,33 @@ public class LastfmWebApi {
             .thenApply(HttpResponse::body);
     }
 
-    private CompletableFuture<Track[]> tracksFromJson(CompletableFuture<String> curr) {
-        return curr
-            .thenApply(body -> gson.fromJson(body, GeographicTopTracks.class))
-            .thenApply(dto -> dto.getTracks() == null
-                    ? new Track[0]
-                    : dto.getTracks().getTrack()
-            );
+    private List<CompletableFuture<String>> getOrCreateJsonPages(String country) {
+        final String ctr = country != null ? country.toLowerCase() : "";
+        return cacheJsonPages.computeIfAbsent(
+            ctr,
+            key -> {
+                JsonAndTracks pair = createCountryTopTracks(key);
+                cacheTracksPages.put(ctr, pair.tracks);
+                return pair.json;
+            });
     }
 
-    public CompletableFuture<Track[]> countryTopTracks(String country, int page){
-        return tracksFromJson(geoTopTracks(country, page));
-    }
-
-    /**
-     * All requests are performed sequentially.
-     * Yet, requests are asynchronous and we do not wait for response completion.
-     */
-    public Stream<String> countryJson(String country){
-        return getOrCreateTopTracks(country)
-            .json
-            .stream()
-            .map(CompletableFuture::join);
-    }
-
-    /**
-     * All requests are performed sequentially.
-     * Yet, requests are asynchronous and we do not wait for response completion.
-     */
-    public Stream<Track> countryTopTracks(String country){
-        return getOrCreateTopTracks(country)
-            .tracks
-            .stream()
-            .map(CompletableFuture::join)
-            .takeWhile(arr -> arr.length != 0)
-            .flatMap(Stream::of);
-
-    }
-
-
-    private TtlResponse getOrCreateTopTracks(String country) {
-        country = country != null ? country.toLowerCase() : "";
-        var pair = countryCache.computeIfAbsent(country, this::createCountryTopTracks);
-        long dur = currentTimeMillis() - pair.date;
-        if(dur > TTL) {
-            pair = createCountryTopTracks(country);
-            countryCache.put(country, pair);
-        }
-        return pair;
+    private List<CompletableFuture<Track[]>> getOrCreateTracksPages(String country) {
+        final String ctr = country != null ? country.toLowerCase() : "";
+        return cacheTracksPages.computeIfAbsent(
+            ctr,
+            key -> {
+                JsonAndTracks pair = createCountryTopTracks(key);
+                cacheJsonPages.put(ctr, pair.json);
+                return pair.tracks;
+            });
     }
 
     /**
      * Since streams are lazy, then we collect it to force requests to be dispatched.
      * Requests to geoTopTracks() are made sequentially.
      */
-    private TtlResponse createCountryTopTracks(String country) {
+    private JsonAndTracks createCountryTopTracks(String country) {
         // Waisting a first page request just to get the total number of pages
         int totalPages = geoTopTracks(country, 1)
             .thenApply(body -> gson.fromJson(body, GeographicTopTracks.class))
@@ -139,20 +148,21 @@ public class LastfmWebApi {
                     tracks.add(tracksFromJson(curr));
                     return lst;
                 },
-                (l1, l2) -> null); // Keep it as null supplier. No combinator since it is not processed in parallel
+                (l1, l2) -> null); // Keep it as null supplier. No combinator needed since it is not processed in parallel
         json.remove(0); // Remove the seed that is an empty CF
-        return TtlResponse.of(currentTimeMillis(), json, tracks);
+        return JsonAndTracks.of(json, tracks);
     }
 
-    public CompletableFuture<Track[]> artistTopTracks(String artisMbid, int page){
-        String path = String.format(LASTFM_ARTIST_TOP_TRACKS, artisMbid, page);
-        return req
-            .get(path)
-            .thenApply(HttpResponse::body)
-            .thenApply(body -> {
-                GetTopTracks dto = gson.fromJson(body, GetTopTracks.class);
-                return dto.getToptracks().getTrack();
-            });
+    /**
+     * Chains a continuation to parse Json and get the tracks array.
+     */
+    private CompletableFuture<Track[]> tracksFromJson(CompletableFuture<String> curr) {
+        return curr
+            .thenApply(body -> gson.fromJson(body, GeographicTopTracks.class))
+            .thenApply(dto -> dto.getTracks() == null
+                    ? new Track[0]
+                    : dto.getTracks().getTrack()
+            );
     }
 
     /**
@@ -181,8 +191,8 @@ public class LastfmWebApi {
     }
 
     /**
-     * Removes entry from countryCache for a given country.
-     * All incomplete CFs will be canceled.
+     * Removes entries from cacheJsonPages and cacheTracksPages for a given country.
+     * All CFs in progress will be canceled.
      * Since each CF is created as a downstream from the previous one, then we just need to
      * cancel the first CF in progress and all dependent CFs will be canceled too.
      * Each CF will propagate cancellation to its direct downstream and so on.
@@ -191,29 +201,32 @@ public class LastfmWebApi {
      */
     public void clearCacheAndCancelRequests(String country) {
         country = country.toLowerCase();
-        TtlResponse pair = countryCache.get(country);
-        if(pair == null) return;
-        pair.json
+        List<CompletableFuture<String>> json = cacheJsonPages.get(country);
+        if(json == null) return;
+        json
             .stream()
             .filter(cf -> !cf.isDone())
             .findFirst()
             .ifPresent(cf -> cf.cancel(true));
-        countryCache.remove(country);
+        cacheJsonPages.remove(country);
+        /*
+         * CF<List<Tracks>> are continuations of previous already canceled CFs.
+         * Thus these ones have been canceled too.
+         */
+        cacheTracksPages.remove(country);
     }
 
-    static class TtlResponse {
-        final long date;
+    static class JsonAndTracks {
         final List<CompletableFuture<String>> json;
         final List<CompletableFuture<Track[]>> tracks;
 
-        public TtlResponse(long date, List<CompletableFuture<String>> json, List<CompletableFuture<Track[]>> tracks) {
-            this.date = date;
+        public JsonAndTracks(List<CompletableFuture<String>> json, List<CompletableFuture<Track[]>> tracks) {
             this.json = json;
             this.tracks = tracks;
         }
 
-        static TtlResponse of(long date, List<CompletableFuture<String>> json, List<CompletableFuture<Track[]>> tracks) {
-            return new TtlResponse(date, json, tracks);
+        static JsonAndTracks of(List<CompletableFuture<String>> json, List<CompletableFuture<Track[]>> tracks) {
+            return new JsonAndTracks(json, tracks);
         }
     }
 }

@@ -69,7 +69,7 @@ public class ControllerTopgeniusApi {
         int pages = limit / 50; // each json document is a page
         worker.executeBlocking(future -> {
             lastfm
-                .countryJson(ctr)
+                .countryTopTracksInJsonPages(ctr)
                 .limit(pages)
                 .forEach(json -> { resp.write(json); resp.write("\n"); });
             future.complete();

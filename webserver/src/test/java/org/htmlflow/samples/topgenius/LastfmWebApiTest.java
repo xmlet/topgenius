@@ -1,12 +1,13 @@
 package org.htmlflow.samples.topgenius;
 
-import org.htmlflow.samples.topgenius.LastfmWebApi.TtlResponse;
 import org.htmlflow.samples.topgenius.model.Track;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.htmlflow.samples.topgenius.LastfmExpected.expectedArtistTopTrack;
 import static org.htmlflow.samples.topgenius.LastfmExpected.expectedCountryPages;
@@ -27,14 +28,6 @@ public class LastfmWebApiTest {
     }
 
     @Test
-    public void getGeographicTopTracksFirstPageInAustralia() throws IOException {
-        LastfmWebApi api = new LastfmWebApi();
-        Track[] tracks = api.countryTopTracks("Australia", 3).join();
-        String expected = expectedCountryTopTrack("Australia", 3);
-        assertEquals(expected, tracks[0].getName());
-    }
-
-    @Test
     public void getGeographicTopTracksInAustralia() throws IOException, NoSuchFieldException, IllegalAccessException {
         int ausPages = expectedCountryPages("Australia");
         LastfmWebApi api = new LastfmWebApi();
@@ -51,11 +44,14 @@ public class LastfmWebApiTest {
          * Check internal cache of LastfmWebApi
          * All requests were dispatched and their CFs stored in a internal cache.
          */
-        Field cache = LastfmWebApi.class.getDeclaredField("countryCache");
+        Field cache = LastfmWebApi.class.getDeclaredField("cacheJsonPages");
         cache.setAccessible(true);
-        var map = (Map<String, TtlResponse>) cache.get(api);
-        assertEquals(ausPages, map.get("australia").json.size());
-        assertEquals(ausPages, map.get("australia").tracks.size());
+        var map = (Map<String, List<CompletableFuture<String>>>) cache.get(api);
+        assertEquals(ausPages, map.get("australia").size());
+        cache = LastfmWebApi.class.getDeclaredField("cacheTracksPages");
+        cache.setAccessible(true);
+        var map2 = (Map<String, List<CompletableFuture<Track[]>>>) cache.get(api);
+        assertEquals(ausPages, map2.get("australia").size());
         /*
          * Running again should get requests from internal cache of CFs.
          * Skipping more tracks we have to wait for completion of further requests.
