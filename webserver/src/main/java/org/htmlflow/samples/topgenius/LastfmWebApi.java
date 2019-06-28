@@ -29,7 +29,7 @@ public class LastfmWebApi {
     private static final String LASTFM_GEOGRAPHIC_TOP_TRACKS = LASTFM_HOST
                                                     + "?method=geo.gettoptracks&format=json&country=%s&page=%d&api_key="
                                                     + LASTFM_API_KEY;
-    private static final long TTL = 1000*60*60*24;
+    private static final int TRACKS_PER_PAGE = 50;
 
     private final Map<String, List<CompletableFuture<String>>> cacheJsonPages;
     private final Map<String, List<CompletableFuture<Track[]>>> cacheTracksPages;
@@ -65,23 +65,72 @@ public class LastfmWebApi {
     /**
      * Returns a stream of pages in JSON format.
      */
-    public Stream<String> countryTopTracksInJsonPages(String country){
+    public Stream<String> countryTopTracksInJsonPages(String country, int nrOfTracks, boolean cache){
+        int nrOfPages = ( nrOfTracks + TRACKS_PER_PAGE - 1)  / TRACKS_PER_PAGE;
+        return cache
+            ? countryTopTracksInJsonPagesFromCache(country, nrOfPages)
+            : countryTopTracksInJsonPages(country, nrOfPages);
+    }
+
+    /**
+     * Dispatches a number of requests needed to fetch a stream of json pages with the size of nrOfPages.
+     */
+    public Stream<String> countryTopTracksInJsonPages(String country, int nrOfPages){
+        int [] page = {1};
+        CompletableFuture<String> seed = CompletableFuture.completedFuture(null);
+        return Stream
+            .iterate(seed, prev -> prev.thenCompose(__ -> geoTopTracks(country, page[0]++)))
+            .skip(1)
+            .map(CompletableFuture::join)
+            .limit(nrOfPages);
+    }
+
+    /**
+     * Dispatches all requests for all pages.
+     */
+    public Stream<String> countryTopTracksInJsonPagesFromCache(String country, int nrOfPages){
         return getOrCreateJsonPages(country)
             .stream()
-            .map(CompletableFuture::join);
+            .map(CompletableFuture::join)
+            .limit(nrOfPages);
     }
 
     /**
      * All requests are performed sequentially.
      * Yet, requests are asynchronous and we do not wait for response completion.
      */
-    public Stream<Track> countryTopTracks(String country){
+    public Stream<Track> countryTopTracks(String country, int limit, boolean cache){
+        return cache ? countryTopTracksFromCache(country, limit) : countryTopTracks(country, limit);
+    }
+
+    /**
+     * Dispatches a number of requests needed to fetch a stream of tracks with the size of limit.
+     */
+    public Stream<Track> countryTopTracks(String country, int limit) {
+        int [] page = {1};
+        CompletableFuture<String> seed = CompletableFuture.completedFuture(null);
+        return Stream
+            .iterate(seed, prev -> prev.thenCompose(__ -> geoTopTracks(country, page[0]++)))
+            .skip(1)
+            .map(cf -> cf.thenApply(body -> gson
+                .fromJson(body, GeographicTopTracks.class)
+                .getTracks()
+                .getTrack()))
+            .map(CompletableFuture::join)
+            .flatMap(Stream::of)
+            .limit(limit);
+    }
+
+    /**
+     * Dispatches all requests for all pages.
+     */
+    private Stream<Track> countryTopTracksFromCache(String country, int limit){
         return getOrCreateTracksPages(country)
             .stream()
             .map(CompletableFuture::join)
             .takeWhile(arr -> arr.length != 0)
-            .flatMap(Stream::of);
-
+            .flatMap(Stream::of)
+            .limit(limit);
     }
 
     private static String geoTopTracksPath(String country, int page) {

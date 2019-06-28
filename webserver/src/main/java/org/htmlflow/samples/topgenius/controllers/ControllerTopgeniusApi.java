@@ -8,7 +8,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import org.htmlflow.samples.topgenius.LastfmWebApi;
+import org.htmlflow.samples.topgenius.LastfmWebApiSessions;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -16,7 +16,7 @@ import java.io.StringWriter;
 import static java.lang.Integer.parseInt;
 
 public class ControllerTopgeniusApi {
-    private final LastfmWebApi lastfm;
+    private final LastfmWebApiSessions lastfm;
     private final Router router;
 
     private final Vertx worker = Vertx
@@ -24,7 +24,7 @@ public class ControllerTopgeniusApi {
             .setWorkerPoolSize(40)
             .setMaxWorkerExecuteTime(Long.MAX_VALUE));
 
-    public ControllerTopgeniusApi(LastfmWebApi lastfm, Vertx vertx) {
+    public ControllerTopgeniusApi(LastfmWebApiSessions lastfm, Vertx vertx) {
         this.router = Router.router(vertx);
         this.lastfm = lastfm;
         router.route(HttpMethod.GET, "/toptracks").handler(this::topTracksHandler);
@@ -46,7 +46,7 @@ public class ControllerTopgeniusApi {
         String country = req.getParam("country");
         try{
             if(country != null && !country.isBlank()) {
-                lastfm.clearCacheAndCancelRequests(country);
+                lastfm.from(ctx).clearCacheAndCancelRequests(country);
             }
         } catch(Throwable err) {
             resp.setStatusCode(500).end(stackTrace(err));
@@ -66,11 +66,10 @@ public class ControllerTopgeniusApi {
         String ctr = req.getParam("country");
         String str = req.getParam("limit");
         int limit = str != null ? parseInt(str) : 50;
-        int pages = limit / 50; // each json document is a page
         worker.executeBlocking(future -> {
             lastfm
-                .countryTopTracksInJsonPages(ctr)
-                .limit(pages)
+                .from(ctx)
+                .countryTopTracksInJsonPages(ctr, limit, lastfm.hasSession(ctx))
                 .forEach(json -> { resp.write(json); resp.write("\n"); });
             future.complete();
         }, ares -> {

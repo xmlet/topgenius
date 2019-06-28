@@ -61,13 +61,28 @@ public class ViewsHtmlFlow {
                                 .__()
                                 .button()
                                     .attrFormmethod(EnumFormmethodMethodType.POST)
-                                    .attrFormaction("/clearcache/htmlflow")
+                                    .attrFormaction("/sessions/clear/htmlflow")
                                     .attrType(EnumTypeButtonType.SUBMIT)
                                     .attrClass("btn btn-primary")
                                     .attrId("buttonClearCache")
                                     .text("Clear Cache for " + ctx.country)
                                 .__()
                             .__() // form
+                            .br().__()
+                            .dynamic(jumbo -> { if(!ctx.hasSession) { jumbo
+                                .form()
+                                    .attrClass("form-inline alert alert-warning")
+                                    .attrMethod(EnumMethodType.POST)
+                                    .attrAction("/sessions/init")
+                                    .button()
+                                        .attrType(EnumTypeButtonType.SUBMIT)
+                                        .attrClass("btn btn-outline-secondary")
+                                        .attrId("buttonAccept")
+                                        .text("Accept")
+                                    .__() // button
+                                    .text("cookies to store a per-user cache of Last.fm. Otherwise, there is no cache.")
+                                .__(); // form
+                            }})
                         .__() // div Jumbotron
                         .p()
                             .strong().text("Server processing time:").__()
@@ -106,19 +121,21 @@ public class ViewsHtmlFlow {
             .__();
     }
 
-    public static TopTracksContext context(String country, int limit, Stream<Track> tracks, long begin) {
-        return new TopTracksContext(country, limit, tracks, begin);
+    public static TopTracksContext context(String country, int limit, boolean hasSession, Stream<Track> tracks, long begin) {
+        return new TopTracksContext(country, limit, hasSession, tracks, begin);
     }
 
     public static class TopTracksContext {
         final String country;
         final int limit;
+        private final boolean hasSession;
         final Stream<Track> tracks;
         private final long begin;
 
-        public TopTracksContext(String country, int limit, Stream<Track> tracks, long begin) {
+        public TopTracksContext(String country, int limit, boolean hasSession, Stream<Track> tracks, long begin) {
             this.country = country;
             this.limit = limit;
+            this.hasSession = hasSession;
             this.tracks = tracks;
             this.begin = begin;
         }

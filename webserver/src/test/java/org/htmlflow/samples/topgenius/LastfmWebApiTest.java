@@ -35,7 +35,7 @@ public class LastfmWebApiTest {
         api.onRequest(path -> count[0]++);
         // api.onRequest(path -> System.out.println(path));
         api.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
-        Track track = api.countryTopTracks("Australia").skip(100).findFirst().get();
+        Track track = api.countryTopTracks("Australia", 10000, true).skip(100).findFirst().get();
         String expected = expectedCountryTopTrack("Australia", 3); // 50 tracks per page
         assertEquals(expected, track.getName());
         System.out.println("REQUESTS: " + count[0]);
@@ -57,7 +57,7 @@ public class LastfmWebApiTest {
          * Skipping more tracks we have to wait for completion of further requests.
          */
         api
-            .countryTopTracks("Australia")
+            .countryTopTracks("Australia", 10000, true)
             .skip(800)
             .findFirst()
             .get()
@@ -72,7 +72,7 @@ public class LastfmWebApiTest {
         int[] count = {0};
         api.onRequest(path -> count[0]++);
         api.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
-        Track track = api.countryTopTracks("Australia").findFirst().get();
+        Track track = api.countryTopTracks("Australia", 10000, true).findFirst().get();
         int prev = count[0];
         System.out.println("REQUESTS: " + prev);
         /*

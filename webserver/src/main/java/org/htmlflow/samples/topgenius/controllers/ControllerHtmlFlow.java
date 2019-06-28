@@ -8,7 +8,7 @@ import io.vertx.core.http.HttpConnection;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
-import org.htmlflow.samples.topgenius.LastfmWebApi;
+import org.htmlflow.samples.topgenius.LastfmWebApiSessions;
 import org.htmlflow.samples.topgenius.model.Track;
 import org.htmlflow.samples.topgenius.views.ViewsHtmlFlow;
 
@@ -25,13 +25,13 @@ import static org.htmlflow.samples.topgenius.views.ViewsHtmlFlow.context;
 
 public class ControllerHtmlFlow {
 
-    private final LastfmWebApi lastfm;
+    private final LastfmWebApiSessions lastfm;
     private final Vertx worker = Vertx
         .vertx(new VertxOptions()
             .setWorkerPoolSize(40)
             .setMaxWorkerExecuteTime(Long.MAX_VALUE));
 
-    public ControllerHtmlFlow(LastfmWebApi lastfm) {
+    public ControllerHtmlFlow(LastfmWebApiSessions lastfm) {
         this.lastfm = lastfm;
     }
 
@@ -47,18 +47,19 @@ public class ControllerHtmlFlow {
         String str = req.getParam("limit");
         int limit = str != null ? parseInt(str) : 10000;
         String country = ctr != null ? ctr : "";
+        boolean hasSession = lastfm.hasSession(ctx);
         worker.<HttpResponsePrinter>executeBlocking(future -> {
             Stream<Track> tracks = country == null || country.isBlank()
                 ? Stream.empty()
                 : lastfm
-                    .countryTopTracks(country)
-                    .limit(limit);
+                    .from(ctx)
+                    .countryTopTracks(country, limit, hasSession);
             resp.setChunked(true);
             HttpResponsePrinter out = new HttpResponsePrinter(resp, req.connection(), future);
             ViewsHtmlFlow
                 .toptracks
                 .setPrintStream(out)
-                .write(context(country, limit, tracks, begin));
+                .write(context(country, limit, hasSession, tracks, begin));
             if(!future.isComplete())
                 future.complete(out);
         }, asyncRes -> {

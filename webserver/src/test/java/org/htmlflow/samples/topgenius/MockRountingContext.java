@@ -18,14 +18,16 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class MockRountingContext implements RoutingContext {
-    final MockRequest req = new MockRequest();
-    CompletableFuture<String> complete = new CompletableFuture<>();
+    private final MockRequest req = new MockRequest();
+    private CompletableFuture<String> complete = new CompletableFuture<>();
+    Map<String, Cookie> cookies = new HashMap<>();
 
     public CompletableFuture<String> complete() {
         return complete;
@@ -38,6 +40,7 @@ public class MockRountingContext implements RoutingContext {
 
     @Override
     public HttpServerResponse response() {
+        complete = new CompletableFuture<>();
         return new MockResponse(complete);
     }
 
@@ -103,12 +106,13 @@ public class MockRountingContext implements RoutingContext {
 
     @Override
     public Cookie getCookie(String name) {
-        return null;
+        return cookies.get(name);
     }
 
     @Override
     public RoutingContext addCookie(Cookie cookie) {
-        return null;
+        cookies.put(cookie.getName(), cookie);
+        return this;
     }
 
     @Override
@@ -269,5 +273,9 @@ public class MockRountingContext implements RoutingContext {
     public MockRountingContext add(String key, String val) {
         req.add(key, val);
         return this;
+    }
+
+    public String join() {
+        return complete.join();
     }
 }

@@ -1,8 +1,8 @@
 package org.htmlflow.samples.topgenius;
 
 import io.vertx.core.Vertx;
+import org.htmlflow.samples.topgenius.controllers.ControllerSessionsForLastfm;
 import org.htmlflow.samples.topgenius.controllers.ControllerTopgeniusApi;
-import org.htmlflow.samples.topgenius.model.Track;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -17,35 +17,90 @@ public class ControllerTopgeniusApiTest {
 
     @Test
     public void testTogeniusApi() throws IOException {
-        LastfmWebApi api = new LastfmWebApi();
-        int[] count = {0};
-        api.onRequest(path -> count[0]++);
-        api.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
-        ControllerTopgeniusApi ctrl = new ControllerTopgeniusApi(api, Vertx.vertx());
+        Vertx vertx = Vertx.vertx();
+        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx);
+        sessions.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
+        ControllerTopgeniusApi ctrl = new ControllerTopgeniusApi(sessions, vertx);
+        /**
+         * Perform requests
+         */
+        MockRountingContext ctx = new MockRountingContext()
+            .add("country", "australia")
+            .add("limit", "150");
+        sessions.init(ctx);
+        ctrl.topTracksHandler(ctx);
+        String body = ctx.join();
+        String[] pages = body.split("\n");
+        List<String> expected = LastfmExpected.expectedCountryPages("australia", 150);
+        assertArrayEquals(expected.toArray(), pages);
+        /*
+         * Request again now from cache.
+         */
+        ctrl.topTracksHandler(ctx); // getting response from cts will instantiate a new MockResponse object.
+        body = ctx.join();
+        pages = body.split("\n");
+        assertArrayEquals(expected.toArray(), pages);
+    }
+
+    @Test
+    public void testTogeniusApiWithoutCache() throws IOException {
+        Vertx vertx = Vertx.vertx();
+        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx);
+        sessions.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
+        ControllerTopgeniusApi ctrl = new ControllerTopgeniusApi(sessions, vertx);
         MockRountingContext ctx = new MockRountingContext()
             .add("country", "australia")
             .add("limit", "150");
         ctrl.topTracksHandler(ctx);
-        String[] pages = ctx.complete.join().split("\n");
+        String[] pages = ctx.join().split("\n");
         List<String> expected = LastfmExpected.expectedCountryPages("australia", 150);
         assertArrayEquals(expected.toArray(), pages);
     }
 
     @Test
-    public void testAndClearCache() throws InterruptedException {
-        LastfmWebApi api = new LastfmWebApi();
+    public void testWithoutCache() throws InterruptedException {
+        Vertx vertx = Vertx.vertx();
+        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx);
         int[] count = {0};
-        api.onRequest(path -> count[0]++);
-        api.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
-        ControllerTopgeniusApi ctrl = new ControllerTopgeniusApi(api, Vertx.vertx());
+        sessions.onRequest(path -> count[0]++);
+        sessions.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
+        ControllerTopgeniusApi ctrl = new ControllerTopgeniusApi(sessions, Vertx.vertx());
         /**
-         * Make a request and wait
+         * Make a request and join for completion
+         */
+        MockRountingContext ctx = new MockRountingContext()
+            .add("country", "australia")
+            .add("limit", "150");
+        ctrl.topTracksHandler(ctx);
+        ctx.join();
+        int prev = count[0];
+        System.out.println("REQUESTS: " + prev);
+        /*
+         * Even sleeping there are NO more requests because we did not request to cache.
+         */
+        Thread.currentThread().sleep(2000);
+        System.out.println("REQUESTS: " + count[0]);
+        assertEquals(prev, count[0]);
+    }
+
+
+    @Test
+    public void testAndClearCache() throws InterruptedException {
+        Vertx vertx = Vertx.vertx();
+        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx);
+        int[] count = {0};
+        sessions.onRequest(path -> count[0]++);
+        sessions.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
+        ControllerTopgeniusApi ctrl = new ControllerTopgeniusApi(sessions, Vertx.vertx());
+        /**
+         * Make a request and join for completion
          */
         MockRountingContext ctx = new MockRountingContext()
             .add("country", "australia")
             .add("limit", "50");
+        sessions.init(ctx); // Initialize cache and set session cookie
         ctrl.topTracksHandler(ctx);
-        ctx.complete.join();
+        ctx.join();
         int prev = count[0];
         System.out.println("REQUESTS: " + prev);
         /*
@@ -58,12 +113,10 @@ public class ControllerTopgeniusApiTest {
          * Clearing the cache and cancelling all further requests the count should
          * remain on the same value.
          */
-        ctx = new MockRountingContext()
-            .add("country", "australia");
         ctrl.clearcacheHandler(ctx);
         prev = count[0];
-        System.out.println("REQUESTS: " + prev);
         Thread.currentThread().sleep(2000);
+        System.out.println("REQUESTS: " + prev);
         assertEquals(prev, count[0]);
     }
 

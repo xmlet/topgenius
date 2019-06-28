@@ -20,10 +20,11 @@ package org.htmlflow.samples.topgenius;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-import org.htmlflow.samples.topgenius.controllers.ControllerCountryCache;
 import org.htmlflow.samples.topgenius.controllers.ControllerHandlebars;
 import org.htmlflow.samples.topgenius.controllers.ControllerHtmlFlow;
+import org.htmlflow.samples.topgenius.controllers.ControllerSessionsForLastfm;
 import org.htmlflow.samples.topgenius.controllers.ControllerTopgeniusApi;
 
 public class WebApp {
@@ -37,20 +38,20 @@ public class WebApp {
         /**
          * Setup web controller.
          */
-        LastfmWebApi lastfm = new LastfmWebApi();
-        lastfm.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
-        ControllerHandlebars ctrHbs = new ControllerHandlebars(lastfm, vertx);
-        ControllerHtmlFlow ctrHfl = new ControllerHtmlFlow(lastfm);
-        ControllerCountryCache ctrCache = new ControllerCountryCache(lastfm, vertx);
-        ControllerTopgeniusApi ctrApi = new ControllerTopgeniusApi(lastfm, vertx);
+        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx);
+        sessions.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
+        ControllerHandlebars ctrHbs = new ControllerHandlebars(sessions, vertx);
+        ControllerHtmlFlow ctrHfl = new ControllerHtmlFlow(sessions);
+        ControllerTopgeniusApi ctrApi = new ControllerTopgeniusApi(sessions, vertx);
         /**
          * Mount controllers.
          */
         router.route("/*").handler(StaticHandler.create("public"));
+        router.route().handler(CookieHandler.create());
         router.route(HttpMethod.GET, "/handlebars").handler(ctrHbs::toptracksHandler);
         router.route(HttpMethod.GET, "/htmlflow").handler(ctrHfl::toptracksHandler);
         router.mountSubRouter("/api", ctrApi.router());
-        router.mountSubRouter("/clearcache", ctrCache.router());
+        router.mountSubRouter("/sessions", sessions.router());
         /**
          * Create and run HTTP server.
          */
