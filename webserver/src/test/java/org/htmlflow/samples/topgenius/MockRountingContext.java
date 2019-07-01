@@ -278,4 +278,9 @@ public class MockRountingContext implements RoutingContext {
     public String join() {
         return complete.join();
     }
+
+    public MockRountingContext addHeader(String key, String val) {
+        req.headers.put(key, val);
+        return this;
+    }
 }

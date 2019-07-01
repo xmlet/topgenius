@@ -50,26 +50,13 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
      */
     public ControllerSessionsForLastfm(Vertx vertx) {
         this.router = Router.router(vertx);
-        router.route(HttpMethod.POST, "/init").handler(this::init);
+        router.route(HttpMethod.POST, "/init").handler(this::initHandler);
         router.route().handler(BodyHandler.create());
         router.route(HttpMethod.POST, "/clear/:from").handler(this::clearcacheHandler);
     }
 
     public Router router() {
         return router;
-    }
-
-    /**
-     * Creates a new LastfmWebApi instance and registers the onResponse consumer
-     * if exists one.
-     */
-    public LastfmWebApi create() {
-        LastfmWebApi api = new LastfmWebApi();
-        if(onResponseCons != null)
-            api.onResponse(onResponseCons);
-        if(onRequestCons!= null)
-            api.onRequest(onRequestCons);
-        return api;
     }
 
     /**
@@ -90,6 +77,7 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
     }
 
     /**
+     * From interface LastfmWebApiSessions.
      * If there is a topgenius session cookie then it will try to get it from
      * sessions Map.
      * Otherwise it will return a new freshly created LastfmWebApi instance.
@@ -103,6 +91,30 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
     }
 
     /**
+     * From interface LastfmWebApiSessions.
+     * Generates a new UUID session and update RoutingContext
+     * with corresponding TopGenius cookie.
+     */
+    public void newSession(RoutingContext ctx) {
+        String uuid = UUID.randomUUID().toString();
+        ctx.addCookie(setTopgeniusCookie(cookie(SESSION_KEY, uuid)));
+        insertSession(uuid);
+    }
+
+    private synchronized void insertSession(String uuid) {
+        if(sessions.size() > MAX_ENTRIES) {
+            while(sessions.size() > WATERMARK) {
+                Long time = sessionsLive.firstKey();
+                String firstUuid = sessionsLive.remove(time);
+                sessions.remove(firstUuid);
+            }
+        }
+        sessions.put(uuid, create());
+        sessionsLive.put(currentTimeMillis(), uuid);
+    }
+
+    /**
+     * From interface LastfmWebApiSessions.
      * Returns true if there is a topgenius session cookie.
      */
     @Override
@@ -117,6 +129,22 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
         ctx.removeCookie(cookie.getName());
         return false;
     }
+
+
+    public void initHandler(RoutingContext ctx) {
+        if(!hasSession(ctx))
+            newSession(ctx);
+        String referer = ctx
+            .request()
+            .getHeader(HttpHeaders.REFERER)
+            .split("\\?")[0];
+        ctx
+            .response()
+            .putHeader("location", referer)
+            .setStatusCode(303)
+            .end();
+    }
+
 
     public synchronized void clearcacheHandler(RoutingContext ctx) {
         HttpServerRequest req = ctx.request();
@@ -135,36 +163,22 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
         resp.putHeader("location", "/" + from).setStatusCode(303).end();
     }
 
-    public void init(RoutingContext ctx) {
-        String uuid = UUID.randomUUID().toString();
-        ctx.addCookie(setTopgeniusCookie(cookie(SESSION_KEY, uuid)));
-        insertSession(uuid);
-        String referer = ctx
-            .request()
-            .getHeader(HttpHeaders.REFERER)
-            .split("\\?")[0];
-        ctx
-            .response()
-            .putHeader("location", referer)
-            .setStatusCode(303)
-            .end();
-    }
-
-    private synchronized void insertSession(String uuid) {
-        if(sessions.size() > MAX_ENTRIES) {
-            while(sessions.size() > WATERMARK) {
-                Long time = sessionsLive.firstKey();
-                String firstUuid = sessionsLive.remove(time);
-                sessions.remove(firstUuid);
-            }
-        }
-        sessions.put(uuid, create());
-        sessionsLive.put(currentTimeMillis(), uuid);
-    }
-
     private Cookie setTopgeniusCookie(Cookie cookie) {
         cookie.setPath("/");
-        // cookie.setMaxAge(60*60*24*365);
+        cookie.setMaxAge(60*10); // 10 minutes
         return cookie;
+    }
+
+    /**
+     * Creates a new LastfmWebApi instance and registers the onResponse consumer
+     * if exists one.
+     */
+    private LastfmWebApi create() {
+        LastfmWebApi api = new LastfmWebApi();
+        if(onResponseCons != null)
+            api.onResponse(onResponseCons);
+        if(onRequestCons!= null)
+            api.onRequest(onRequestCons);
+        return api;
     }
 }

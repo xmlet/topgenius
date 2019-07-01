@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
@@ -56,7 +57,7 @@ public class LastfmExpected {
             final String path = LASTFM_HOST + LASTFM_GEOGRAPHIC_TOP_TRACKS;
             String url = String.format(path, country, page, LASTFM_API_KEY);
             InputStream in = new URL(url).openStream();
-            return new BufferedReader(new InputStreamReader(in)).lines().collect(joining());
+            return new BufferedReader(new InputStreamReader(in, Charset.forName("UTF-8"))).lines().collect(joining());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

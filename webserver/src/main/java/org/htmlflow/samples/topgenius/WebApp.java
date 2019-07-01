@@ -52,6 +52,7 @@ public class WebApp {
         router.route(HttpMethod.GET, "/htmlflow").handler(ctrHfl::toptracksHandler);
         router.mountSubRouter("/api", ctrApi.router());
         router.mountSubRouter("/sessions", sessions.router());
+        router.route(HttpMethod.GET, "/").handler(ctrHbs::index);
         /**
          * Create and run HTTP server.
          */

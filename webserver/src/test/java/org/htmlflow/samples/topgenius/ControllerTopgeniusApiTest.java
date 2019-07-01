@@ -26,8 +26,9 @@ public class ControllerTopgeniusApiTest {
          */
         MockRountingContext ctx = new MockRountingContext()
             .add("country", "australia")
-            .add("limit", "150");
-        sessions.init(ctx);
+            .add("limit", "150")
+            .addHeader("referer", "dummy");
+        sessions.initHandler(ctx);
         ctrl.topTracksHandler(ctx);
         String body = ctx.join();
         String[] pages = body.split("\n");
@@ -97,8 +98,9 @@ public class ControllerTopgeniusApiTest {
          */
         MockRountingContext ctx = new MockRountingContext()
             .add("country", "australia")
-            .add("limit", "50");
-        sessions.init(ctx); // Initialize cache and set session cookie
+            .add("limit", "50")
+            .addHeader("referer", "dummy");
+        sessions.initHandler(ctx); // Initialize cache and set session cookie
         ctrl.topTracksHandler(ctx);
         ctx.join();
         int prev = count[0];

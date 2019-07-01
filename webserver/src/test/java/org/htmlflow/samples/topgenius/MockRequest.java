@@ -23,6 +23,7 @@ import java.util.Map;
 
 public class MockRequest implements HttpServerRequest {
     Map<String, String> params = new HashMap<>();
+    Map<String, String> headers = new HashMap<>();
 
     public MockRequest add(String key, String val) {
         params.put(key, val);
@@ -111,27 +112,27 @@ public class MockRequest implements HttpServerRequest {
 
     @Override
     public HttpServerResponse response() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public MultiMap headers() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String getHeader(String headerName) {
-        return null;
+        return headers.get(headerName);
     }
 
     @Override
     public String getHeader(CharSequence headerName) {
-        return null;
+        return headers.get(headerName.toString());
     }
 
     @Override
     public MultiMap params() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -141,37 +142,37 @@ public class MockRequest implements HttpServerRequest {
 
     @Override
     public SocketAddress remoteAddress() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public SocketAddress localAddress() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public SSLSession sslSession() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public X509Certificate[] peerCertificateChain() throws SSLPeerUnverifiedException {
-        return new X509Certificate[0];
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String absoluteURI() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public NetSocket netSocket() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public HttpServerRequest setExpectMultipart(boolean expect) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override

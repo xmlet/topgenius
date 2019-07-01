@@ -3,6 +3,9 @@ import React from 'react'
 /**
  * It deals with stream chunks not ending on line boundaries 
  * and converting from Uint8Array to strings.
+ * Taken from MDN Web Docs, "ReadableStreamDefaultReader.read()"
+ * "Example 2 - handling text line by line"
+ * https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read#Example_2_-_handling_text_line_by_line
  */
 async function* ndjson(reader) {
     const utf8Decoder = new TextDecoder("utf-8");
@@ -15,14 +18,14 @@ async function* ndjson(reader) {
     for (;;) {
         let result = re.exec(chunk);
         if (!result) {
-        if (readerDone) {
-            break;
-        }
-        let remainder = chunk.substr(startIndex);
-        ({value: chunk, done: readerDone} = await reader.read());
-        chunk = remainder + (chunk ? utf8Decoder.decode(chunk) : "");
-        startIndex = re.lastIndex = 0;
-        continue;
+            if (readerDone) {
+                break;
+            }
+            let remainder = chunk.substr(startIndex);
+            ({value: chunk, done: readerDone} = await reader.read());
+            chunk = remainder + (chunk ? utf8Decoder.decode(chunk) : "");
+            startIndex = re.lastIndex = 0;
+            continue;
         }
         const data = chunk.substring(startIndex, result.index);
         yield JSON.parse(data)
@@ -57,6 +60,7 @@ class GeographicTopTracks extends React.Component {
 
     cancelHandler() {
         this.setState(prevState => ({ 'tracks': prevState.tracks, 'cancel': true }))
+        this.props.updateFetching(false)
     }
 
     /**
@@ -77,8 +81,10 @@ class GeographicTopTracks extends React.Component {
         const url = this.lastfmUrl(country, nrOfTracks)
         const self = this
         this.setState({ 'tracks': [], 'cancel': false })
-        fetch(url)
+        fetch(url, { method: 'get', credentials: 'include' })
             .then(resp => {
+                if(resp.status != 200)
+                    return resp.text().then(msg => { throw Error(msg) })
                 const reader = ndjson(resp.body.getReader())
                 reader.next().then(function cons({value, done}) {
                     if(done || self.state.cancel) return self.props.updateFetching(false)

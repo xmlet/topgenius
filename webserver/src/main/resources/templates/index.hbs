@@ -10,6 +10,14 @@
                 <div class="jumbotron">
                     <p class="lead">TopGenius.eu</p>
                     <hr>
+                    {{#unless hasSession}}
+                        <form class="form-inline alert alert-warning" method="post" action="/sessions/init">
+                            <button type="submit" class="btn btn-outline-secondary" id="buttonAccept">
+                                Accept
+                            </button>
+                            cookies to store a per-user cache of Last.fm. Otherwise, there is no cache.
+                        </form>
+                    {{/unless}}
                 </div>
                 <p>Web Application comparing 3 different approaches for template views:</p>
                 <ul>

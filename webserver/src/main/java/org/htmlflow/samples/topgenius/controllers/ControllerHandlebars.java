@@ -36,6 +36,16 @@ public class ControllerHandlebars {
         this.engine = HandlebarsTemplateEngine.create(vertx);
     }
 
+    public void index(RoutingContext ctx) {
+        HttpServerResponse resp = ctx.response();
+        Map<String, Object> data = new HashMap<>();
+        data.put("hasSession", lastfm.hasSession(ctx));
+        engine.render(data, "templates/index.hbs", view -> {
+            if(view.succeeded()) resp.end(view.result());
+            else resp.setStatusCode(500).end(stackTrace(view.cause()));
+        });
+    }
+
     public void toptracksHandler(RoutingContext ctx) {
         long begin = currentTimeMillis();
         HttpServerRequest req = ctx.request();

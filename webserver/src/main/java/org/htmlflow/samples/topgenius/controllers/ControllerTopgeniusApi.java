@@ -27,6 +27,7 @@ public class ControllerTopgeniusApi {
     public ControllerTopgeniusApi(LastfmWebApiSessions lastfm, Vertx vertx) {
         this.router = Router.router(vertx);
         this.lastfm = lastfm;
+        router.route(HttpMethod.POST, "/accept").handler(this::acceptHandler);
         router.route(HttpMethod.GET, "/toptracks").handler(this::topTracksHandler);
         router.route().handler(BodyHandler.create());
         router.route(HttpMethod.POST, "/clearcache").handler(this::clearcacheHandler);
@@ -34,6 +35,18 @@ public class ControllerTopgeniusApi {
 
     public Router router() {
         return router;
+    }
+
+    public void acceptHandler(RoutingContext ctx) {
+        HttpServerResponse resp = ctx.response();
+        try{
+            if(!lastfm.hasSession(ctx))
+                lastfm.newSession(ctx);
+        } catch(Throwable err) {
+            resp.setStatusCode(500).end(stackTrace(err));
+        } finally {
+            resp.end();
+        }
     }
 
     public void clearcacheHandler(RoutingContext ctx) {
