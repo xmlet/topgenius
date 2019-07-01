@@ -9,11 +9,11 @@ import io.vertx.core.http.HttpServerResponse;
 
 import java.util.concurrent.CompletableFuture;
 
-public class MockResponse implements HttpServerResponse {
+public class MockHttpServerResponse implements HttpServerResponse {
     private final CompletableFuture<String> complete;
     private final StringBuffer buf = new StringBuffer();
 
-    public MockResponse(CompletableFuture<String> complete) {
+    public MockHttpServerResponse(CompletableFuture<String> complete) {
         this.complete = complete;
     }
 

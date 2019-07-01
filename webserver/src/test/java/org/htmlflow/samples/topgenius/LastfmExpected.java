@@ -8,15 +8,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class LastfmExpected {
@@ -31,7 +30,7 @@ public class LastfmExpected {
                                             + LASTFM_API_KEY;
         String path = String.format(LASTFM_ARTIST_TOP_TRACKS, mbid, 1);
         InputStream in = new URL(path).openStream();
-        JsonReader reader = new Gson().newJsonReader(new BufferedReader(new InputStreamReader(in)));
+        JsonReader reader = new Gson().newJsonReader(new BufferedReader(new InputStreamReader(in, "UTF-8")));
         reader.beginObject(); // enter root
         reader.nextName();
         reader.beginObject(); // enter "toptracks"
@@ -44,30 +43,25 @@ public class LastfmExpected {
         return res;
     }
 
-    static List<String> expectedCountryPages(String country, int limit) throws IOException {
+    static List<String> expectedCountryPages(MockAsyncRequest areq, String country, int limit) throws IOException {
         final String path = LASTFM_HOST + LASTFM_GEOGRAPHIC_TOP_TRACKS;
         final int pages = limit / 50;
         return IntStream
             .rangeClosed(1, pages)
-            .mapToObj(page -> urlFetch(country, page))
+            .mapToObj(page -> {
+                String url = String.format(
+                    LASTFM_HOST + LASTFM_GEOGRAPHIC_TOP_TRACKS,
+                    country, page, LASTFM_API_KEY);
+                return areq.get(url).join().body();
+            })
             .collect(toList());
     }
-    private static String urlFetch(String country, int page) {
-        try {
-            final String path = LASTFM_HOST + LASTFM_GEOGRAPHIC_TOP_TRACKS;
-            String url = String.format(path, country, page, LASTFM_API_KEY);
-            InputStream in = new URL(url).openStream();
-            return new BufferedReader(new InputStreamReader(in, Charset.forName("UTF-8"))).lines().collect(joining());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-    static String expectedCountryTopTrack(String country, int page) throws IOException {
+    static String expectedCountryTopTrack(AsyncRequest areq, String country, int page) throws IOException {
         final String path = LASTFM_HOST + LASTFM_GEOGRAPHIC_TOP_TRACKS;
         String url = String.format(path, country, page, LASTFM_API_KEY);
-        InputStream in = new URL(url).openStream();
-        JsonReader reader = new Gson().newJsonReader(new BufferedReader(new InputStreamReader(in)));
+        String body = areq.get(url).join().body();
+        JsonReader reader = new Gson().newJsonReader(new StringReader(body));
         reader.beginObject(); // enter root
         reader.nextName();
         reader.beginObject(); // enter "tracks"
@@ -79,11 +73,11 @@ public class LastfmExpected {
         reader.close();
         return res;
     }
-    static int expectedCountryPages(String country) throws IOException {
+    static int expectedCountryPages(AsyncRequest areq, String country) throws IOException {
         try {
             Method geoTopTracks = LastfmWebApi.class.getDeclaredMethod("geoTopTracks", String.class, int.class);
             geoTopTracks.setAccessible(true);
-            var json = (CompletableFuture<String>) geoTopTracks.invoke(new LastfmWebApi(), country, 1);
+            var json = (CompletableFuture<String>) geoTopTracks.invoke(new LastfmWebApi(areq), country, 1);
             var dto = json.thenApply(body -> new Gson().fromJson(body, GeographicTopTracks.class));
             return dto.join().getTracks().getAttr().getTotalPages();
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {

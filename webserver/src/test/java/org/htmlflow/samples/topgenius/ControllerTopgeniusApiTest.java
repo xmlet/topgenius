@@ -18,7 +18,8 @@ public class ControllerTopgeniusApiTest {
     @Test
     public void testTogeniusApi() throws IOException {
         Vertx vertx = Vertx.vertx();
-        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx);
+        MockAsyncRequest areq = new MockAsyncRequest();
+        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx, areq);
         sessions.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
         ControllerTopgeniusApi ctrl = new ControllerTopgeniusApi(sessions, vertx);
         /**
@@ -32,7 +33,7 @@ public class ControllerTopgeniusApiTest {
         ctrl.topTracksHandler(ctx);
         String body = ctx.join();
         String[] pages = body.split("\n");
-        List<String> expected = LastfmExpected.expectedCountryPages("australia", 150);
+        List<String> expected = LastfmExpected.expectedCountryPages(areq, "australia", 150);
         assertArrayEquals(expected.toArray(), pages);
         /*
          * Request again now from cache.
@@ -41,12 +42,14 @@ public class ControllerTopgeniusApiTest {
         body = ctx.join();
         pages = body.split("\n");
         assertArrayEquals(expected.toArray(), pages);
+        sessions.clearcacheHandler(ctx);
     }
 
     @Test
     public void testTogeniusApiWithoutCache() throws IOException {
         Vertx vertx = Vertx.vertx();
-        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx);
+        MockAsyncRequest areq = new MockAsyncRequest();
+        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx, areq);
         sessions.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
         ControllerTopgeniusApi ctrl = new ControllerTopgeniusApi(sessions, vertx);
         MockRountingContext ctx = new MockRountingContext()
@@ -54,14 +57,14 @@ public class ControllerTopgeniusApiTest {
             .add("limit", "150");
         ctrl.topTracksHandler(ctx);
         String[] pages = ctx.join().split("\n");
-        List<String> expected = LastfmExpected.expectedCountryPages("australia", 150);
+        List<String> expected = LastfmExpected.expectedCountryPages(areq, "australia", 150);
         assertArrayEquals(expected.toArray(), pages);
     }
 
     @Test
     public void testWithoutCache() throws InterruptedException {
         Vertx vertx = Vertx.vertx();
-        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx);
+        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx, new MockAsyncRequest());
         int[] count = {0};
         sessions.onRequest(path -> count[0]++);
         sessions.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
@@ -79,7 +82,7 @@ public class ControllerTopgeniusApiTest {
         /*
          * Even sleeping there are NO more requests because we did not request to cache.
          */
-        Thread.currentThread().sleep(2000);
+        Thread.currentThread().sleep(200);
         System.out.println("REQUESTS: " + count[0]);
         assertEquals(prev, count[0]);
     }
@@ -88,7 +91,7 @@ public class ControllerTopgeniusApiTest {
     @Test
     public void testAndClearCache() throws InterruptedException {
         Vertx vertx = Vertx.vertx();
-        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx);
+        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx, new MockAsyncRequest());
         int[] count = {0};
         sessions.onRequest(path -> count[0]++);
         sessions.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
@@ -108,7 +111,7 @@ public class ControllerTopgeniusApiTest {
         /*
          * While sleeping more requests have completed and the count should increase.
          */
-        Thread.currentThread().sleep(2000);
+        Thread.currentThread().sleep(200);
         System.out.println("REQUESTS: " + count[0]);
         assertTrue(count[0] > prev);
         /*
@@ -117,7 +120,7 @@ public class ControllerTopgeniusApiTest {
          */
         ctrl.clearcacheHandler(ctx);
         prev = count[0];
-        Thread.currentThread().sleep(2000);
+        Thread.currentThread().sleep(200);
         System.out.println("REQUESTS: " + prev);
         assertEquals(prev, count[0]);
     }

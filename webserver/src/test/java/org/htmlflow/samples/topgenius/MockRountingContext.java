@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class MockRountingContext implements RoutingContext {
-    private final MockRequest req = new MockRequest();
+    private final MockHttpServerRequest req = new MockHttpServerRequest();
     private CompletableFuture<String> complete = new CompletableFuture<>();
     Map<String, Cookie> cookies = new HashMap<>();
 
@@ -41,7 +41,7 @@ public class MockRountingContext implements RoutingContext {
     @Override
     public HttpServerResponse response() {
         complete = new CompletableFuture<>();
-        return new MockResponse(complete);
+        return new MockHttpServerResponse(complete);
     }
 
     @Override

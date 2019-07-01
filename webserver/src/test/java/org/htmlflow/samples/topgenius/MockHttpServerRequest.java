@@ -21,11 +21,11 @@ import javax.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MockRequest implements HttpServerRequest {
+public class MockHttpServerRequest implements HttpServerRequest {
     Map<String, String> params = new HashMap<>();
     Map<String, String> headers = new HashMap<>();
 
-    public MockRequest add(String key, String val) {
+    public MockHttpServerRequest add(String key, String val) {
         params.put(key, val);
         return this;
     }

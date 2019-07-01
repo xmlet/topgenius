@@ -29,14 +29,15 @@ public class LastfmWebApiTest {
 
     @Test
     public void getGeographicTopTracksInAustralia() throws IOException, NoSuchFieldException, IllegalAccessException {
-        int ausPages = expectedCountryPages("Australia");
-        LastfmWebApi api = new LastfmWebApi();
+        AsyncRequest areq = new MockAsyncRequest();
+        int ausPages = expectedCountryPages(areq, "Australia");
+        LastfmWebApi api = new LastfmWebApi(areq);
         int[] count = {0};
         api.onRequest(path -> count[0]++);
         // api.onRequest(path -> System.out.println(path));
         api.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
         Track track = api.countryTopTracks("Australia", 10000, true).skip(100).findFirst().get();
-        String expected = expectedCountryTopTrack("Australia", 3); // 50 tracks per page
+        String expected = expectedCountryTopTrack(areq, "Australia", 3); // 50 tracks per page
         assertEquals(expected, track.getName());
         System.out.println("REQUESTS: " + count[0]);
         int prev = count[0];
@@ -64,11 +65,12 @@ public class LastfmWebApiTest {
             .getName();
         System.out.println("REQUESTS: " + count[0]);
         assertTrue(count[0] > prev);
+        api.clearCacheAndCancelRequests("australia");
     }
 
     @Test
     public void testAndClearCache() throws InterruptedException {
-        LastfmWebApi api = new LastfmWebApi();
+        LastfmWebApi api = new LastfmWebApi(new MockAsyncRequest());
         int[] count = {0};
         api.onRequest(path -> count[0]++);
         api.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
@@ -78,7 +80,7 @@ public class LastfmWebApiTest {
         /*
          * While sleeping more requests have completed and the count should increase.
          */
-        Thread.currentThread().sleep(2000);
+        Thread.currentThread().sleep(200);
         System.out.println("REQUESTS: " + count[0]);
         assertTrue(count[0] > prev);
         /*
@@ -88,7 +90,7 @@ public class LastfmWebApiTest {
         api.clearCacheAndCancelRequests("australia");
         prev = count[0];
         System.out.println("REQUESTS: " + prev);
-        Thread.currentThread().sleep(2000);
+        Thread.currentThread().sleep(200);
         assertEquals(prev, count[0]);
     }
 }

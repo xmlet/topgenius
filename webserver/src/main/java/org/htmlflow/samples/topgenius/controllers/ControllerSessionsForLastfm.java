@@ -9,6 +9,7 @@ import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import org.htmlflow.samples.topgenius.AsyncRequest;
 import org.htmlflow.samples.topgenius.LastfmWebApi;
 import org.htmlflow.samples.topgenius.LastfmWebApiSessions;
 
@@ -37,23 +38,31 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
      * Key is insertion time in milis and value is the UUID
      */
     final SortedMap<Long, String> sessionsLive = new TreeMap<>();
+    private final AsyncRequest req;
 
     private Consumer<HttpResponse<String>> onResponseCons;
     private Consumer<String> onRequestCons;
 
     final Router router;
 
+    public ControllerSessionsForLastfm(Vertx vertx) {
+        this(vertx, null);
+    }
+
+
     /**
      * It will register routes /init and /clear to initialize and clear the per user cache.
      * Unfortunately we are not taking advantage of PUT and DELETE verbs because these routes
      * are requested by HTML form submission without AJAX, which does not supports those methods.
      */
-    public ControllerSessionsForLastfm(Vertx vertx) {
+    public ControllerSessionsForLastfm(Vertx vertx, AsyncRequest req) {
         this.router = Router.router(vertx);
+        this.req = req;
         router.route(HttpMethod.POST, "/init").handler(this::initHandler);
         router.route().handler(BodyHandler.create());
         router.route(HttpMethod.POST, "/clear/:from").handler(this::clearcacheHandler);
     }
+
 
     public Router router() {
         return router;
@@ -174,7 +183,9 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
      * if exists one.
      */
     private LastfmWebApi create() {
-        LastfmWebApi api = new LastfmWebApi();
+        LastfmWebApi api = req == null
+            ? new LastfmWebApi()
+            : new LastfmWebApi(req);
         if(onResponseCons != null)
             api.onResponse(onResponseCons);
         if(onRequestCons!= null)
