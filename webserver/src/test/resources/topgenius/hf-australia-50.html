@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+		<title>
+			TopGenius.eu
+		</title>
+	</head>
+	<body>
+		<div class="container">
+			<div class="jumbotron">
+				<p class="lead">
+					<a href="/">
+						TopGenius.eu
+					</a>
+				</p>
+				<hr>
+				<form class="form-inline">
+					<div class="form-group">
+						<label class="col-form-label">
+							Country:
+						</label>
+						<input class="form-control" type="text" name="country" id="inputCountry" value="australia">
+						<label class="col-form-label">
+							Limit:
+						</label>
+						<input class="form-control" type="text" name="limit" id="inputLimit" value="8">
+					</div>
+					<button formmethod="get" type="submit" class="btn btn-primary" id="buttonTopTracks">
+						Top Tracks
+					</button>
+					<button formmethod="post" formaction="/sessions/clear/htmlflow" type="submit" class="btn btn-primary" id="buttonClearCache">
+						Clear Cache for australia
+					</button>
+				</form>
+				<br>
+				<form class="form-inline alert alert-warning" method="post" action="/sessions/init">
+					<button type="submit" class="btn btn-outline-secondary" id="buttonAccept">
+						Accept
+					</button>
+					cookies to store a per-user cache of Last.fm. Otherwise, there is no cache.
+				</form>
+			</div>
+			<p>
+				<strong>
+					Server processing time:
+				</strong>
+				0.284
+				 ms for 
+				australia
+			</p>
+			<table class="table">
+				<tr>
+					<th>
+						Rank
+					</th>
+					<th>
+						Track
+					</th>
+					<th>
+						Listeners
+					</th>
+				</tr>
+				<tr>
+					<td>
+						1
+					</td>
+					<td>
+						<a href="https://www.last.fm/music/Tame+Impala/_/The+Less+I+Know+the+Better" target="_blank">
+							The Less I Know the Better
+						</a>
+					</td>
+					<td>
+						434911
+					</td>
+				</tr>
+				<tr>
+					<td>
+						2
+					</td>
+					<td>
+						<a href="https://www.last.fm/music/The+Weeknd/_/Can%27t+Feel+My+Face" target="_blank">
+							Can't Feel My Face
+						</a>
+					</td>
+					<td>
+						465220
+					</td>
+				</tr>
+				<tr>
+					<td>
+						3
+					</td>
+					<td>
+						<a href="https://www.last.fm/music/The+Killers/_/Mr.+Brightside" target="_blank">
+							Mr. Brightside
+						</a>
+					</td>
+					<td>
+						1989109
+					</td>
+				</tr>
+				<tr>
+					<td>
+						4
+					</td>
+					<td>
+						<a href="https://www.last.fm/music/Drake/_/Hotline+Bling" target="_blank">
+							Hotline Bling
+						</a>
+					</td>
+					<td>
+						377630
+					</td>
+				</tr>
+				<tr>
+					<td>
+						5
+					</td>
+					<td>
+						<a href="https://www.last.fm/music/Kendrick+Lamar/_/King+Kunta" target="_blank">
+							King Kunta
+						</a>
+					</td>
+					<td>
+						365131
+					</td>
+				</tr>
+				<tr>
+					<td>
+						6
+					</td>
+					<td>
+						<a href="https://www.last.fm/music/Tame+Impala/_/Let+It+Happen" target="_blank">
+							Let It Happen
+						</a>
+					</td>
+					<td>
+						356799
+					</td>
+				</tr>
+				<tr>
+					<td>
+						7
+					</td>
+					<td>
+						<a href="https://www.last.fm/music/Toto/_/Africa" target="_blank">
+							Africa
+						</a>
+					</td>
+					<td>
+						935883
+					</td>
+				</tr>
+				<tr>
+					<td>
+						8
+					</td>
+					<td>
+						<a href="https://www.last.fm/music/Gorillaz/_/Feel+Good+Inc." target="_blank">
+							Feel Good Inc.
+						</a>
+					</td>
+					<td>
+						1500252
+					</td>
+				</tr>
+			</table>
+		</div>
+	</body>
+</html>

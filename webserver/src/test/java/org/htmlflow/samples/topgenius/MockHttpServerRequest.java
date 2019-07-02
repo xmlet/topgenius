@@ -212,7 +212,7 @@ public class MockHttpServerRequest implements HttpServerRequest {
 
     @Override
     public HttpConnection connection() {
-        return null;
+        return new MockHttpConnection();
     }
 
     @Override

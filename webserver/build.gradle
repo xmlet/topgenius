@@ -6,11 +6,18 @@
  * user guide available at https://docs.gradle.org/3.4/userguide/tutorial_java_projects.html
  */
 
+plugins {
+  id "org.sonarqube" version "2.7"
+}
+
 // Apply the java plugin to add support for Java
 apply plugin: 'java'
 
 // Apply the application plugin to add support for building an application
 apply plugin: 'application'
+
+// Apply the JaCoCo plugin to calculate code coverage
+apply plugin: 'jacoco'
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -35,6 +42,20 @@ task copyReactToLib(type: Copy) {
 }
 
 stage.dependsOn(copyReactToLib)
+
+task codeCoverageReport(type: JacocoReport) {
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+    sourceSets sourceSets.main
+
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination file("${buildDir}/jacocoHtml")
+    }
+}
+
+codeCoverageReport.dependsOn(test)
 
 dependencies {
     compile group: 'org.slf4j', name: 'slf4j-jdk14', version: '1.7.25'

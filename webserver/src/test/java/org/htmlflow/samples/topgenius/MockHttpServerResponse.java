@@ -24,7 +24,8 @@ public class MockHttpServerResponse implements HttpServerResponse {
 
     @Override
     public HttpServerResponse write(Buffer data) {
-        throw new UnsupportedOperationException();
+        buf.append(data.toString());
+        return this;
     }
 
     @Override
@@ -186,7 +187,8 @@ public class MockHttpServerResponse implements HttpServerResponse {
 
     @Override
     public void end(Buffer chunk) {
-        throw new UnsupportedOperationException();
+        buf.append(chunk);
+        complete.complete(buf.toString());
     }
 
     @Override
@@ -216,7 +218,6 @@ public class MockHttpServerResponse implements HttpServerResponse {
 
     @Override
     public void close() {
-        throw new UnsupportedOperationException();
     }
 
     @Override

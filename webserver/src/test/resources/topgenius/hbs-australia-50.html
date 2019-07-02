@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+        <title>TopGenius.eu</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <p class="lead"><a href="/">TopGenius.eu</a></p>
+                <hr>
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label class="col-form-label">Country:</label>
+                        <input class="form-control" type="text" name="country" id="inputCountry" value='australia'>
+                        <label class="col-form-label">Limit:</label>
+                        <input class="form-control" type="text" name="limit" id="inputLimit" value='50'>
+                    </div>
+                    <button formmethod="get" type="submit" class="btn btn-primary" id="buttonTopTracks">
+                        Top Tracks
+                    </button>
+                    <button formmethod="post" formaction="/sessions/clear/handlebars" type="submit" class="btn btn-primary" id="buttonClearCache">
+                        Clear Cache for australia
+                    </button>
+                </form>
+                <br>
+                
+                    <form class="form-inline alert alert-warning" method="post" action="/sessions/init">
+                        <button type="submit" class="btn btn-outline-secondary" id="buttonAccept">
+                            Accept
+                        </button>
+                        cookies to store a per-user cache of Last.fm. Otherwise, there is no cache.
+                    </form>
+                
+            </div>
+            <p><strong>Server processing time</strong>: 0.95 ms for australia</p>
+            <table class="table">
+    <tr>
+        <th>Rank</th>
+        <th>Track</th>
+        <th>Listeners</th>
+    </tr>
+    
+        <tr>
+            <td>0</td>
+            <td>
+                <a href='https://www.last.fm/music/Tame+Impala/_/The+Less+I+Know+the+Better' target="_blank">
+                    The Less I Know the Better
+                </a>
+            </td>
+            <td>434911</td>
+        </tr>
+    
+        <tr>
+            <td>1</td>
+            <td>
+                <a href='https://www.last.fm/music/The+Weeknd/_/Can%27t+Feel+My+Face' target="_blank">
+                    Can&#x27;t Feel My Face
+                </a>
+            </td>
+            <td>465220</td>
+        </tr>
+    
+        <tr>
+            <td>2</td>
+            <td>
+                <a href='https://www.last.fm/music/The+Killers/_/Mr.+Brightside' target="_blank">
+                    Mr. Brightside
+                </a>
+            </td>
+            <td>1989109</td>
+        </tr>
+    
+        <tr>
+            <td>3</td>
+            <td>
+                <a href='https://www.last.fm/music/Drake/_/Hotline+Bling' target="_blank">
+                    Hotline Bling
+                </a>
+            </td>
+            <td>377630</td>
+        </tr>
+    
+        <tr>
+            <td>4</td>
+            <td>
+                <a href='https://www.last.fm/music/Kendrick+Lamar/_/King+Kunta' target="_blank">
+                    King Kunta
+                </a>
+            </td>
+            <td>365131</td>
+        </tr>
+    
+        <tr>
+            <td>5</td>
+            <td>
+                <a href='https://www.last.fm/music/Tame+Impala/_/Let+It+Happen' target="_blank">
+                    Let It Happen
+                </a>
+            </td>
+            <td>356799</td>
+        </tr>
+    
+        <tr>
+            <td>6</td>
+            <td>
+                <a href='https://www.last.fm/music/Toto/_/Africa' target="_blank">
+                    Africa
+                </a>
+            </td>
+            <td>935883</td>
+        </tr>
+    
+        <tr>
+            <td>7</td>
+            <td>
+                <a href='https://www.last.fm/music/Gorillaz/_/Feel+Good+Inc.' target="_blank">
+                    Feel Good Inc.
+                </a>
+            </td>
+            <td>1500252</td>
+        </tr>
+    
+        <tr>
+            <td>8</td>
+            <td>
+                <a href='https://www.last.fm/music/Nirvana/_/Smells+Like+Teen+Spirit' target="_blank">
+                    Smells Like Teen Spirit
+                </a>
+            </td>
+            <td>2073430</td>
+        </tr>
+    
+        <tr>
+            <td>9</td>
+            <td>
+                <a href='https://www.last.fm/music/Major+Lazer/_/Lean+On+(feat.+M%C3%98+&amp;+DJ+Snake)' target="_blank">
+                    Lean On (feat. MØ &amp; DJ Snake)
+                </a>
+            </td>
+            <td>442192</td>
+        </tr>
+    
+        <tr>
+            <td>10</td>
+            <td>
+                <a href='https://www.last.fm/music/Childish+Gambino/_/Redbone' target="_blank">
+                    Redbone
+                </a>
+            </td>
+            <td>314607</td>
+        </tr>
+    
+        <tr>
+            <td>11</td>
+            <td>
+                <a href='https://www.last.fm/music/Justin+Bieber/_/Sorry' target="_blank">
+                    Sorry
+                </a>
+            </td>
+            <td>359121</td>
+        </tr>
+    
+        <tr>
+            <td>12</td>
+            <td>
+                <a href='https://www.last.fm/music/The+White+Stripes/_/Seven+Nation+Army' target="_blank">
+                    Seven Nation Army
+                </a>
+            </td>
+            <td>1517855</td>
+        </tr>
+    
+        <tr>
+            <td>13</td>
+            <td>
+                <a href='https://www.last.fm/music/Red+Hot+Chili+Peppers/_/Under+the+Bridge' target="_blank">
+                    Under the Bridge
+                </a>
+            </td>
+            <td>1542411</td>
+        </tr>
+    
+        <tr>
+            <td>14</td>
+            <td>
+                <a href='https://www.last.fm/music/Massive+Attack/_/Teardrop' target="_blank">
+                    Teardrop
+                </a>
+            </td>
+            <td>1307956</td>
+        </tr>
+    
+        <tr>
+            <td>15</td>
+            <td>
+                <a href='https://www.last.fm/music/Radiohead/_/Karma+Police' target="_blank">
+                    Karma Police
+                </a>
+            </td>
+            <td>1634270</td>
+        </tr>
+    
+        <tr>
+            <td>16</td>
+            <td>
+                <a href='https://www.last.fm/music/Adele/_/Hello' target="_blank">
+                    Hello
+                </a>
+            </td>
+            <td>414417</td>
+        </tr>
+    
+        <tr>
+            <td>17</td>
+            <td>
+                <a href='https://www.last.fm/music/Radiohead/_/Burn+the+Witch' target="_blank">
+                    Burn the Witch
+                </a>
+            </td>
+            <td>274874</td>
+        </tr>
+    
+        <tr>
+            <td>18</td>
+            <td>
+                <a href='https://www.last.fm/music/Radiohead/_/Creep' target="_blank">
+                    Creep
+                </a>
+            </td>
+            <td>1644680</td>
+        </tr>
+    
+        <tr>
+            <td>19</td>
+            <td>
+                <a href='https://www.last.fm/music/Nirvana/_/Come+as+You+Are' target="_blank">
+                    Come as You Are
+                </a>
+            </td>
+            <td>1828595</td>
+        </tr>
+    
+        <tr>
+            <td>20</td>
+            <td>
+                <a href='https://www.last.fm/music/Bon+Iver/_/Skinny+Love' target="_blank">
+                    Skinny Love
+                </a>
+            </td>
+            <td>1080895</td>
+        </tr>
+    
+        <tr>
+            <td>21</td>
+            <td>
+                <a href='https://www.last.fm/music/Justin+Bieber/_/What+Do+You+Mean%3F' target="_blank">
+                    What Do You Mean?
+                </a>
+            </td>
+            <td>329469</td>
+        </tr>
+    
+        <tr>
+            <td>22</td>
+            <td>
+                <a href='https://www.last.fm/music/Vance+Joy/_/Riptide' target="_blank">
+                    Riptide
+                </a>
+            </td>
+            <td>599704</td>
+        </tr>
+    
+        <tr>
+            <td>23</td>
+            <td>
+                <a href='https://www.last.fm/music/The+Smashing+Pumpkins/_/1979' target="_blank">
+                    1979
+                </a>
+            </td>
+            <td>1030467</td>
+        </tr>
+    
+        <tr>
+            <td>24</td>
+            <td>
+                <a href='https://www.last.fm/music/MGMT/_/Electric+Feel' target="_blank">
+                    Electric Feel
+                </a>
+            </td>
+            <td>1413251</td>
+        </tr>
+    
+        <tr>
+            <td>25</td>
+            <td>
+                <a href='https://www.last.fm/music/Arctic+Monkeys/_/Do+I+Wanna+Know%3F' target="_blank">
+                    Do I Wanna Know?
+                </a>
+            </td>
+            <td>911496</td>
+        </tr>
+    
+        <tr>
+            <td>26</td>
+            <td>
+                <a href='https://www.last.fm/music/The+Verve/_/Bitter+Sweet+Symphony' target="_blank">
+                    Bitter Sweet Symphony
+                </a>
+            </td>
+            <td>1171487</td>
+        </tr>
+    
+        <tr>
+            <td>27</td>
+            <td>
+                <a href='https://www.last.fm/music/Tame+Impala/_/The+Moment' target="_blank">
+                    The Moment
+                </a>
+            </td>
+            <td>233773</td>
+        </tr>
+    
+        <tr>
+            <td>28</td>
+            <td>
+                <a href='https://www.last.fm/music/Kendrick+Lamar/_/HUMBLE.' target="_blank">
+                    HUMBLE.
+                </a>
+            </td>
+            <td>370499</td>
+        </tr>
+    
+        <tr>
+            <td>29</td>
+            <td>
+                <a href='https://www.last.fm/music/The+Weeknd/_/The+Hills' target="_blank">
+                    The Hills
+                </a>
+            </td>
+            <td>376066</td>
+        </tr>
+    
+        <tr>
+            <td>30</td>
+            <td>
+                <a href='https://www.last.fm/music/a-ha/_/Take+on+Me' target="_blank">
+                    Take on Me
+                </a>
+            </td>
+            <td>1161750</td>
+        </tr>
+    
+        <tr>
+            <td>31</td>
+            <td>
+                <a href='https://www.last.fm/music/Foo+Fighters/_/Everlong' target="_blank">
+                    Everlong
+                </a>
+            </td>
+            <td>1327745</td>
+        </tr>
+    
+        <tr>
+            <td>32</td>
+            <td>
+                <a href='https://www.last.fm/music/Franz+Ferdinand/_/Take+Me+Out' target="_blank">
+                    Take Me Out
+                </a>
+            </td>
+            <td>1679124</td>
+        </tr>
+    
+        <tr>
+            <td>33</td>
+            <td>
+                <a href='https://www.last.fm/music/Flume/_/Never+Be+Like+You' target="_blank">
+                    Never Be Like You
+                </a>
+            </td>
+            <td>128947</td>
+        </tr>
+    
+        <tr>
+            <td>34</td>
+            <td>
+                <a href='https://www.last.fm/music/Tears+for+Fears/_/Everybody+Wants+to+Rule+the+World' target="_blank">
+                    Everybody Wants to Rule the World
+                </a>
+            </td>
+            <td>688724</td>
+        </tr>
+    
+        <tr>
+            <td>35</td>
+            <td>
+                <a href='https://www.last.fm/music/Tame+Impala/_/Eventually' target="_blank">
+                    Eventually
+                </a>
+            </td>
+            <td>254690</td>
+        </tr>
+    
+        <tr>
+            <td>36</td>
+            <td>
+                <a href='https://www.last.fm/music/Foster+the+People/_/Pumped+Up+Kicks' target="_blank">
+                    Pumped Up Kicks
+                </a>
+            </td>
+            <td>1237814</td>
+        </tr>
+    
+        <tr>
+            <td>37</td>
+            <td>
+                <a href='https://www.last.fm/music/Queens+of+the+Stone+Age/_/No+One+Knows' target="_blank">
+                    No One Knows
+                </a>
+            </td>
+            <td>1092031</td>
+        </tr>
+    
+        <tr>
+            <td>38</td>
+            <td>
+                <a href='https://www.last.fm/music/Lorde/_/Royals' target="_blank">
+                    Royals
+                </a>
+            </td>
+            <td>844901</td>
+        </tr>
+    
+        <tr>
+            <td>39</td>
+            <td>
+                <a href='https://www.last.fm/music/M83/_/Midnight+City' target="_blank">
+                    Midnight City
+                </a>
+            </td>
+            <td>978059</td>
+        </tr>
+    
+        <tr>
+            <td>40</td>
+            <td>
+                <a href='https://www.last.fm/music/Radiohead/_/Paranoid+Android' target="_blank">
+                    Paranoid Android
+                </a>
+            </td>
+            <td>1344709</td>
+        </tr>
+    
+        <tr>
+            <td>41</td>
+            <td>
+                <a href='https://www.last.fm/music/The+Cure/_/Friday+I%27m+in+Love' target="_blank">
+                    Friday I&#x27;m in Love
+                </a>
+            </td>
+            <td>1050963</td>
+        </tr>
+    
+        <tr>
+            <td>42</td>
+            <td>
+                <a href='https://www.last.fm/music/Sia/_/Cheap+Thrills' target="_blank">
+                    Cheap Thrills
+                </a>
+            </td>
+            <td>377767</td>
+        </tr>
+    
+        <tr>
+            <td>43</td>
+            <td>
+                <a href='https://www.last.fm/music/blink-182/_/All+the+Small+Things' target="_blank">
+                    All the Small Things
+                </a>
+            </td>
+            <td>1207882</td>
+        </tr>
+    
+        <tr>
+            <td>44</td>
+            <td>
+                <a href='https://www.last.fm/music/The+xx/_/Intro' target="_blank">
+                    Intro
+                </a>
+            </td>
+            <td>1099889</td>
+        </tr>
+    
+        <tr>
+            <td>45</td>
+            <td>
+                <a href='https://www.last.fm/music/Lorde/_/Green+Light' target="_blank">
+                    Green Light
+                </a>
+            </td>
+            <td>280884</td>
+        </tr>
+    
+        <tr>
+            <td>46</td>
+            <td>
+                <a href='https://www.last.fm/music/Red+Hot+Chili+Peppers/_/Californication' target="_blank">
+                    Californication
+                </a>
+            </td>
+            <td>1614854</td>
+        </tr>
+    
+        <tr>
+            <td>47</td>
+            <td>
+                <a href='https://www.last.fm/music/Grimes/_/Flesh+Without+Blood' target="_blank">
+                    Flesh Without Blood
+                </a>
+            </td>
+            <td>196773</td>
+        </tr>
+    
+        <tr>
+            <td>48</td>
+            <td>
+                <a href='https://www.last.fm/music/Crowded+House/_/Don%27t+Dream+It%27s+Over' target="_blank">
+                    Don&#x27;t Dream It&#x27;s Over
+                </a>
+            </td>
+            <td>423473</td>
+        </tr>
+    
+        <tr>
+            <td>49</td>
+            <td>
+                <a href='https://www.last.fm/music/Pixies/_/Where+Is+My+Mind%3F' target="_blank">
+                    Where Is My Mind?
+                </a>
+            </td>
+            <td>1173759</td>
+        </tr>
+    
+</table>
+        </div>
+        <hr>
+        <footer class="footer mt-auto py-3">
+            <div class="container">
+                <a href="https://www.last.fm" target="_blank">
+                    <span class="text-muted">Powered by AudioScrobbler</span>
+                    <img src="/img/AudioScrobbler.png" height="40">
+                </a>
+          </div>
+        </footer>
+    </body>
+</html>
