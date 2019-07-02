@@ -38,7 +38,7 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
      * Key is insertion time in milis and value is the UUID
      */
     final SortedMap<Long, String> sessionsLive = new TreeMap<>();
-    private final AsyncRequest req;
+    private final AsyncRequest areq;
 
     private Consumer<HttpResponse<String>> onResponseCons;
     private Consumer<String> onRequestCons;
@@ -55,9 +55,9 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
      * Unfortunately we are not taking advantage of PUT and DELETE verbs because these routes
      * are requested by HTML form submission without AJAX, which does not supports those methods.
      */
-    public ControllerSessionsForLastfm(Vertx vertx, AsyncRequest req) {
+    public ControllerSessionsForLastfm(Vertx vertx, AsyncRequest areq) {
         this.router = Router.router(vertx);
-        this.req = req;
+        this.areq = areq;
         router.route(HttpMethod.POST, "/init").handler(this::initHandler);
         router.route().handler(BodyHandler.create());
         router.route(HttpMethod.POST, "/clear/:from").handler(this::clearcacheHandler);
@@ -174,7 +174,7 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
 
     private Cookie setTopgeniusCookie(Cookie cookie) {
         cookie.setPath("/");
-        cookie.setMaxAge(60*10); // 10 minutes
+        cookie.setMaxAge(((long) 60) * 10); // 10 minutes
         return cookie;
     }
 
@@ -183,9 +183,9 @@ public class ControllerSessionsForLastfm implements LastfmWebApiSessions {
      * if exists one.
      */
     private LastfmWebApi create() {
-        LastfmWebApi api = req == null
+        LastfmWebApi api = areq == null
             ? new LastfmWebApi()
-            : new LastfmWebApi(req);
+            : new LastfmWebApi(areq);
         if(onResponseCons != null)
             api.onResponse(onResponseCons);
         if(onRequestCons!= null)

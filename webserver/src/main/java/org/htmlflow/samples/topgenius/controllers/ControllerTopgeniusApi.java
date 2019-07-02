@@ -42,7 +42,7 @@ public class ControllerTopgeniusApi {
         try{
             if(!lastfm.hasSession(ctx))
                 lastfm.newSession(ctx);
-        } catch(Throwable err) {
+        } catch(Exception err) {
             resp.setStatusCode(500).end(stackTrace(err));
         } finally {
             resp.end();
@@ -61,7 +61,7 @@ public class ControllerTopgeniusApi {
             if(country != null && !country.isBlank()) {
                 lastfm.from(ctx).clearCacheAndCancelRequests(country);
             }
-        } catch(Throwable err) {
+        } catch(Exception err) {
             resp.setStatusCode(500).end(stackTrace(err));
         } finally {
             resp.end();

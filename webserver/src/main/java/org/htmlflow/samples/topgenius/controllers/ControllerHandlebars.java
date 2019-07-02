@@ -7,7 +7,6 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
-import org.htmlflow.samples.topgenius.LastfmWebApi;
 import org.htmlflow.samples.topgenius.LastfmWebApiSessions;
 import org.htmlflow.samples.topgenius.model.Track;
 

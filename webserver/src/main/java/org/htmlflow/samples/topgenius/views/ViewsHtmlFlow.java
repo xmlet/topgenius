@@ -14,7 +14,11 @@ import static java.lang.System.currentTimeMillis;
 
 public class ViewsHtmlFlow {
 
-    public static DynamicHtml<TopTracksContext> toptracks = DynamicHtml.view(ViewsHtmlFlow::toptracksTemplate);
+    private ViewsHtmlFlow() {
+    }
+
+    public static final DynamicHtml<TopTracksContext> toptracks = DynamicHtml
+        .view(ViewsHtmlFlow::toptracksTemplate);
 
     static void toptracksTemplate(DynamicHtml<TopTracksContext> view, TopTracksContext ctx) {
         view
@@ -99,7 +103,7 @@ public class ViewsHtmlFlow {
                             .__()
                             .dynamic(table -> {
                                 int[] count = {1};
-                                ctx.tracks.forEach(track -> {
+                                ctx.tracks.forEach(track ->
                                     table
                                         .tr()
                                             .td().dynamic(td -> td.text(count[0]++)).__()
@@ -112,8 +116,8 @@ public class ViewsHtmlFlow {
                                                     .__())
                                             .__()
                                             .td().dynamic(td -> td.text(track.getListeners())).__()
-                                        .__();
-                                });
+                                        .__()
+                                );
                             })
                         .__()
                     .__()
