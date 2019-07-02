@@ -71,7 +71,7 @@ try{
 
 // Start bench
 WDS.sampleResult.sampleStart();
-WDS.browser.get(&apos;http://localhost:3000/htmlflow?country=australia&amp;limit=500&apos;);
+WDS.browser.get(&apos;http://localhost:3000/htmlflow?country=australia&amp;limit=5000&apos;);
 WDS.browser.executeScript(
 	&quot;window.scrollTo(0, document.body.scrollHeight)&quot;);
 WDS.sampleResult.sampleEnd();</stringProp>
