@@ -73,7 +73,7 @@ public class LastfmExpected {
         reader.close();
         return res;
     }
-    static int expectedCountryPages(AsyncRequest areq, String country) throws IOException {
+    static int expectedCountryPages(AsyncRequest areq, String country) {
         try {
             Method geoTopTracks = LastfmWebApi.class.getDeclaredMethod("geoTopTracks", String.class, int.class);
             geoTopTracks.setAccessible(true);

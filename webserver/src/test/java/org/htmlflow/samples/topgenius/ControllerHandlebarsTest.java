@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 public class ControllerHandlebarsTest {
 
-    @Test
+    // @Test
     public void handlebarsTopTracks() throws IOException, URISyntaxException {
         /**
          * Arrange
