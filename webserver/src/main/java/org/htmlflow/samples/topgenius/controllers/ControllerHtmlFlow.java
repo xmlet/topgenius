@@ -8,28 +8,35 @@ import io.vertx.core.http.HttpConnection;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
-import org.htmlflow.samples.topgenius.LastfmWebApi;
+import org.htmlflow.samples.topgenius.LastfmWebApiSessions;
 import org.htmlflow.samples.topgenius.model.Track;
 import org.htmlflow.samples.topgenius.views.ViewsHtmlFlow;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
+import static java.lang.System.currentTimeMillis;
 import static org.htmlflow.samples.topgenius.views.ViewsHtmlFlow.context;
 
 public class ControllerHtmlFlow {
 
-    private final LastfmWebApi lastfm;
-    private Vertx worker = Vertx.vertx(new VertxOptions().setWorkerPoolSize(40));
+    private final LastfmWebApiSessions lastfm;
+    private final Vertx worker = Vertx
+        .vertx(new VertxOptions()
+            .setWorkerPoolSize(40)
+            .setMaxWorkerExecuteTime(Long.MAX_VALUE));
 
-    public ControllerHtmlFlow(LastfmWebApi lastfm) {
+    public ControllerHtmlFlow(LastfmWebApiSessions lastfm) {
         this.lastfm = lastfm;
     }
 
     public void toptracksHandler(RoutingContext ctx) {
+        long begin = currentTimeMillis();
         HttpServerRequest req = ctx.request();
         HttpServerResponse resp = ctx.response();
         resp.putHeader("content-type", "text/html");
@@ -40,21 +47,24 @@ public class ControllerHtmlFlow {
         String str = req.getParam("limit");
         int limit = str != null ? parseInt(str) : 10000;
         String country = ctr != null ? ctr : "";
+        boolean hasSession = lastfm.hasSession(ctx);
         worker.<HttpResponsePrinter>executeBlocking(future -> {
-            Stream<Track> tracks = lastfm
-                .geographicTopTracks(country)
-                .limit(limit);
+            Stream<Track> tracks = country == null || country.isBlank()
+                ? Stream.empty()
+                : lastfm
+                    .from(ctx)
+                    .countryTopTracks(country, limit, hasSession);
             resp.setChunked(true);
             HttpResponsePrinter out = new HttpResponsePrinter(resp, req.connection(), future);
             ViewsHtmlFlow
                 .toptracks
                 .setPrintStream(out)
-                .write(context(country, limit, tracks));
+                .write(context(country, limit, hasSession, tracks, begin));
             if(!future.isComplete())
                 future.complete(out);
         }, asyncRes -> {
             if(asyncRes.failed())
-                resp.end(asyncRes.cause().toString());
+                resp.end(stackTrace(asyncRes.cause()));
             else
                 asyncRes.result().close(); // flush + close
         });
@@ -115,5 +125,11 @@ public class ControllerHtmlFlow {
         public void write(int b) throws IOException {
             throw new UnsupportedOperationException();
         }
+    }
+
+    private static String stackTrace(Throwable err) {
+        StringWriter sw = new StringWriter();
+        err.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
     }
 }

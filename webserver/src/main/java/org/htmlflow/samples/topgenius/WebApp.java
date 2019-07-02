@@ -18,12 +18,17 @@
 package org.htmlflow.samples.topgenius;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import org.htmlflow.samples.topgenius.controllers.ControllerHandlebars;
 import org.htmlflow.samples.topgenius.controllers.ControllerHtmlFlow;
+import org.htmlflow.samples.topgenius.controllers.ControllerSessionsForLastfm;
+import org.htmlflow.samples.topgenius.controllers.ControllerTopgeniusApi;
 
 public class WebApp {
+
     public static void main(String[] args) throws Exception {
         /**
          * Setup Vertex and router
@@ -33,15 +38,21 @@ public class WebApp {
         /**
          * Setup web controller.
          */
-        LastfmWebApi lastfm = new LastfmWebApi();
-        ControllerHandlebars ctrHbs = new ControllerHandlebars(lastfm, vertx);
-        ControllerHtmlFlow ctrHfl = new ControllerHtmlFlow(lastfm);
+        ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx);
+        sessions.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
+        ControllerHandlebars ctrHbs = new ControllerHandlebars(sessions, vertx);
+        ControllerHtmlFlow ctrHfl = new ControllerHtmlFlow(sessions);
+        ControllerTopgeniusApi ctrApi = new ControllerTopgeniusApi(sessions, vertx);
         /**
          * Mount controllers.
          */
         router.route("/*").handler(StaticHandler.create("public"));
-        router.route("/handlebars").handler(ctrHbs::toptracksHandler);
-        router.route("/htmlflow").handler(ctrHfl::toptracksHandler);
+        router.route().handler(CookieHandler.create());
+        router.route(HttpMethod.GET, "/handlebars").handler(ctrHbs::toptracksHandler);
+        router.route(HttpMethod.GET, "/htmlflow").handler(ctrHfl::toptracksHandler);
+        router.mountSubRouter("/api", ctrApi.router());
+        router.mountSubRouter("/sessions", sessions.router());
+        router.route(HttpMethod.GET, "/").handler(ctrHbs::index);
         /**
          * Create and run HTTP server.
          */
@@ -51,4 +62,5 @@ public class WebApp {
                 .requestHandler(router)
                 .listen(Integer.parseInt(port));
     }
+
 }

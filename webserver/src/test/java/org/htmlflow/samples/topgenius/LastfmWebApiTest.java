@@ -1,16 +1,19 @@
 package org.htmlflow.samples.topgenius;
 
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
 import org.htmlflow.samples.topgenius.model.Track;
-import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+import static org.htmlflow.samples.topgenius.LastfmExpected.expectedArtistTopTrack;
+import static org.htmlflow.samples.topgenius.LastfmExpected.expectedCountryPages;
+import static org.htmlflow.samples.topgenius.LastfmExpected.expectedCountryTopTrack;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class LastfmWebApiTest {
@@ -19,59 +22,75 @@ public class LastfmWebApiTest {
     public void getTopTracksFromMuse() throws IOException {
         LastfmWebApi api = new LastfmWebApi();
         String mbid = "fd857293-5ab8-40de-b29e-55a69d4e4d0f";
-        Track[] tracks = api.artistTopTracks(mbid, 1);
+        Track[] tracks = api.artistTopTracks(mbid, 1).join();
         String expected = expectedArtistTopTrack(mbid);
-        Assert.assertEquals(expected, tracks[0].getName());
+        assertEquals(expected, tracks[0].getName());
     }
 
     @Test
-    public void getGeographicTopTracksInAustralia() throws IOException {
-        LastfmWebApi api = new LastfmWebApi();
-        Track[] tracks = api.geographicTopTracks("Australia", 1);
-        String expected = expectedCountryTopTrack("Australia");
-        Assert.assertEquals(expected, tracks[0].getName());
+    public void getGeographicTopTracksInAustralia() throws IOException, NoSuchFieldException, IllegalAccessException {
+        AsyncRequest areq = new MockAsyncRequest();
+        int ausPages = expectedCountryPages(areq, "Australia");
+        LastfmWebApi api = new LastfmWebApi(areq);
+        int[] count = {0};
+        api.onRequest(path -> count[0]++);
+        // api.onRequest(path -> System.out.println(path));
+        api.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
+        Track track = api.countryTopTracks("Australia", 10000, true).skip(100).findFirst().get();
+        String expected = expectedCountryTopTrack(areq, "Australia", 3); // 50 tracks per page
+        assertEquals(expected, track.getName());
+        System.out.println("REQUESTS: " + count[0]);
+        int prev = count[0];
+        /*
+         * Check internal cache of LastfmWebApi
+         * All requests were dispatched and their CFs stored in a internal cache.
+         */
+        Field cache = LastfmWebApi.class.getDeclaredField("cacheJsonPages");
+        cache.setAccessible(true);
+        var map = (Map<String, List<CompletableFuture<String>>>) cache.get(api);
+        assertEquals(ausPages, map.get("australia").size());
+        cache = LastfmWebApi.class.getDeclaredField("cacheTracksPages");
+        cache.setAccessible(true);
+        var map2 = (Map<String, List<CompletableFuture<Track[]>>>) cache.get(api);
+        assertEquals(ausPages, map2.get("australia").size());
+        /*
+         * Running again should get requests from internal cache of CFs.
+         * Skipping more tracks we have to wait for completion of further requests.
+         */
+        api
+            .countryTopTracks("Australia", 10000, true)
+            .skip(800)
+            .findFirst()
+            .get()
+            .getName();
+        System.out.println("REQUESTS: " + count[0]);
+        assertTrue(count[0] > prev);
+        api.clearCacheAndCancelRequests("australia");
     }
 
-    static String expectedArtistTopTrack(String mbid) throws IOException {
-        final String LASTFM_API_KEY = "038cde478fb0eff567330587e8e981a4";
-        final String LASTFM_HOST = "http://ws.audioscrobbler.com/2.0/";
-        final String LASTFM_ARTIST_TOP_TRACKS = LASTFM_HOST
-                                            + "?method=artist.gettoptracks&format=json&mbid=%s&page=%d&api_key="
-                                            + LASTFM_API_KEY;
-        String path = String.format(LASTFM_ARTIST_TOP_TRACKS, mbid, 1);
-        InputStream in = new URL(path).openStream();
-        JsonReader reader = new Gson().newJsonReader(new BufferedReader(new InputStreamReader(in)));
-        reader.beginObject(); // enter root
-        reader.nextName();
-        reader.beginObject(); // enter "toptracks"
-        reader.nextName();
-        reader.beginArray();  // enter "track"
-        reader.beginObject(); // enter "track[]"
-        reader.nextName();    // enter "track[]::name"
-        String res = reader.nextString();
-        reader.close();
-        return res;
+    @Test
+    public void testAndClearCache() throws InterruptedException {
+        LastfmWebApi api = new LastfmWebApi(new MockAsyncRequest());
+        int[] count = {0};
+        api.onRequest(path -> count[0]++);
+        api.onResponse(resp -> System.out.println("RESP: " + resp.uri()));
+        Track track = api.countryTopTracks("Australia", 10000, true).findFirst().get();
+        int prev = count[0];
+        System.out.println("REQUESTS: " + prev);
+        /*
+         * While sleeping more requests have completed and the count should increase.
+         */
+        Thread.currentThread().sleep(200);
+        System.out.println("REQUESTS: " + count[0]);
+        assertTrue(count[0] > prev);
+        /*
+         * Clearing the cache and cancelling all further requests the count should
+         * remain on the same value.
+         */
+        api.clearCacheAndCancelRequests("australia");
+        prev = count[0];
+        System.out.println("REQUESTS: " + prev);
+        Thread.currentThread().sleep(200);
+        assertEquals(prev, count[0]);
     }
-
-    static String expectedCountryTopTrack(String country) throws IOException {
-        final String LASTFM_API_KEY = "038cde478fb0eff567330587e8e981a4";
-        final String LASTFM_HOST = "http://ws.audioscrobbler.com/2.0/";
-        final String LASTFM_GEOGRAPHIC_TOP_TRACKS = LASTFM_HOST
-                                                    + "?method=geo.gettoptracks&format=json&country=%s&page=%d&api_key="
-                                                    + LASTFM_API_KEY;
-        String path = String.format(LASTFM_GEOGRAPHIC_TOP_TRACKS , country, 1);
-        InputStream in = new URL(path).openStream();
-        JsonReader reader = new Gson().newJsonReader(new BufferedReader(new InputStreamReader(in)));
-        reader.beginObject(); // enter root
-        reader.nextName();
-        reader.beginObject(); // enter "tracks"
-        reader.nextName();
-        reader.beginArray();  // enter "track"
-        reader.beginObject(); // enter "track[]"
-        reader.nextName();    // enter "track[]::name"
-        String res = reader.nextString();
-        reader.close();
-        return res;
-    }
-
 }

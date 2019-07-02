@@ -1,5 +1,7 @@
 package org.htmlflow.samples.topgenius.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class GeographicTopTracks {
     private final TopTracks tracks;
 

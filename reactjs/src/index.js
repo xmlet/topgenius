@@ -15,13 +15,20 @@ class App extends React.Component {
         this.geoTopTracks.current.tracksHandler(country, limit)
     }
 
+    cancelHandler() {
+        this.geoTopTracks.current.cancelHandler()
+    }
+
     render() {
         return (
             <div>
                 <div class="jumbotron">
-                    <p class="lead">TopGenius.eu</p>
+                    <p className="lead"><a href="/">TopGenius.eu</a></p>
                     <hr/>
-                    <InputCountry handler={(country, limit) => this.tracksHandler(country, limit)}/>
+                    <InputCountry 
+                        tracksHandler={(country, limit) => this.tracksHandler(country, limit)}
+                        cancelHandler={() => this.cancelHandler()}
+                    />
                     <div>
                         {this.state.fetching && <ReactLoading type={"bars"} color="#666666" /> }
                     </div>
