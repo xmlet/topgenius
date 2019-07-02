@@ -29,6 +29,13 @@ task copyToLib(type: Copy) {
 
 stage.dependsOn(copyToLib)
 
+task copyReactToLib(type: Copy) {
+    into "$buildDir/libs"
+    from(project(':reactjs').packageTopgeniusReact.archivePath)
+}
+
+stage.dependsOn(copyReactToLib)
+
 dependencies {
     compile group: 'org.slf4j', name: 'slf4j-jdk14', version: '1.7.25'
     compile 'com.google.code.gson:gson:2.8.5'
@@ -40,16 +47,18 @@ dependencies {
 
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
+    testCompile 'com.github.javasync:AsyncFileRw:1.1.2'
 }
 
 // Define the main class for the application
 mainClassName = 'org.htmlflow.samples.topgenius.WebApp'
+def reactFilename = project(':reactjs').packageTopgeniusReact.archiveFileName.get()
 
 jar {
   manifest {
     attributes(
-      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-      'Main-Class': 'org.htmlflow.samples.topgenius.WebApp'
+      'Class-Path': configurations.compile.collect { it.getName() }.join(' ') + ' ' + reactFilename,
+      'Main-Class': mainClassName
     )
   }
   archiveBaseName = 'topgenius'
