@@ -7,8 +7,46 @@
     <body>
         <main role="main">
             <div class="container">
+                <span id="forkongithub" style="
+                    width: 200px;
+                    position: absolute;
+                    top: 60px;
+                    right: -60px;
+                    transform: rotate(45deg);
+                    -webkit-transform: rotate(45deg);
+                    -ms-transform: rotate(45deg);
+                    -moz-transform: rotate(45deg);
+                    -o-transform: rotate(45deg);
+                    box-shadow: 4px 4px 10px rgba(0,0,0,0.8);
+                    box-sizing: content-box;
+                    color: #fff;
+                    text-decoration: none;
+                    font-family: arial,sans-serif;
+                    text-align: center;
+                    font-weight: 700;
+                    line-height: 2rem;
+                    transition: .5s;
+                    padding: 5px 40px;
+                ">
+                <a href="https://github.com/xmlet/topgenius" class="bg-green" target="_blank">
+                    <img src="/img/GitHub.png" width="20px"> Fork me on GitHub
+                </a>
+                </span>
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <ul class="nav nav-pills">
+                      <li class="nav-item">
+                        <a class="nav-link" href="/handlebars">Handlebars</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link" href="/htmlflow">HtmlFlow</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link disabled" href="/react">ReactJS</a>
+                      </li>
+                    </ul>
+                </nav>
                 <div class="jumbotron">
-                    <p class="lead">TopGenius.eu</p>
+                    <p class="lead"><a href="/">TopGenius.eu</a></p>
                     <hr>
                     {{#unless hasSession}}
                         <form class="form-inline alert alert-warning" method="post" action="/sessions/init">
@@ -20,11 +58,9 @@
                     {{/unless}}
                 </div>
                 <p>Web Application comparing 3 different approaches for template views:</p>
-                <ul>
-                    <li><a href="/handlebars">Handlebars</a></li>
-                    <li><a href="/react">ReactJS</a></li>
-                    <li><a href="/htmlflow">HtmlFlow</a></li>
-                </ul>
+                <a href="/img/TopGeniusArch.png">
+                    <img src="/img/TopGeniusArch.png" style="max-width: 100%;">
+                </a>
             </div>
             <hr>
         </main>

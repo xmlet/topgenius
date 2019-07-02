@@ -31,7 +31,7 @@ public class ViewsHtmlFlow {
                         .attrClass("container")
                         .div()
                             .attrClass("jumbotron")
-                            .p().attrClass("lead").text("TopGenius.eu").__()
+                            .p().attrClass("lead").a().attrHref("/").text("TopGenius.eu").__().__()
                             .hr().__()
                             .form().attrClass("form-inline")
                                 .div().attrClass("form-group")

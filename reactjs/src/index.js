@@ -23,7 +23,7 @@ class App extends React.Component {
         return (
             <div>
                 <div class="jumbotron">
-                    <p class="lead">TopGenius.eu</p>
+                    <p className="lead"><a href="/">TopGenius.eu</a></p>
                     <hr/>
                     <InputCountry 
                         tracksHandler={(country, limit) => this.tracksHandler(country, limit)}
