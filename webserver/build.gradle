@@ -64,7 +64,7 @@ dependencies {
     compile 'io.vertx:vertx-web:3.7.1'
     compile 'com.github.xmlet:htmlflow:3.2'
 
-    // runtimeOnly project(':reactjs')
+    runtimeOnly project(':reactjs')
 
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
@@ -73,7 +73,7 @@ dependencies {
 
 // Define the main class for the application
 mainClassName = 'org.htmlflow.samples.topgenius.WebApp'
-def reactFilename = 'topgenius-reactjs.jar'
+def reactFilename = project(':reactjs').packageTopgeniusReact.archiveFileName.get()
 
 jar {
   manifest {
