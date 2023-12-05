@@ -31,7 +31,7 @@ build.mustRunAfter clean
 
 task copyToLib(type: Copy) {
     into "$buildDir/libs"
-    from(configurations.compile)
+    from(configurations.implementation)
 }
 
 stage.dependsOn(copyToLib)
@@ -58,17 +58,17 @@ task codeCoverageReport(type: JacocoReport) {
 codeCoverageReport.dependsOn(test)
 
 dependencies {
-    compile group: 'org.slf4j', name: 'slf4j-jdk14', version: '1.7.25'
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'io.vertx:vertx-web-templ-handlebars:3.7.1'
-    compile 'io.vertx:vertx-web:3.7.1'
-    compile 'com.github.xmlet:htmlflow:3.2'
+    implementation group: 'org.slf4j', name: 'slf4j-jdk14', version: '1.7.25'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'io.vertx:vertx-web-templ-handlebars:3.7.1'
+    implementation 'io.vertx:vertx-web:3.7.1'
+    implementation 'com.github.xmlet:htmlflow:3.2'
 
     runtimeOnly project(':reactjs')
 
     // Use JUnit test framework
-    testCompile 'junit:junit:4.12'
-    testCompile 'com.github.javasync:AsyncFileRw:1.1.2'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'com.github.javasync:AsyncFileRw:1.1.2'
 }
 
 // Define the main class for the application
@@ -78,7 +78,7 @@ def reactFilename = project(':reactjs').packageTopgeniusReact.archiveFileName.ge
 jar {
   manifest {
     attributes(
-      'Class-Path': configurations.compile.collect { it.getName() }.join(' ') + ' ' + reactFilename,
+      'Class-Path': configurations.runtimeClasspath.collect { it.getName() }.join(' ') + ' ' + reactFilename,
       'Main-Class': mainClassName
     )
   }
