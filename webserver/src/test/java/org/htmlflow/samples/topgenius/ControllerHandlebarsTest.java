@@ -47,7 +47,7 @@ public class ControllerHandlebarsTest {
             .add("country", "australia")
             .add("limit", "50");
         ctrl.toptracksHandler(ctx);
-        String[] lines = ctx.join().split("\r\n");
+        String[] lines = ctx.join().split(System.lineSeparator());
         Iterator<String> actual = Arrays
             .stream(lines)
             .filter(l -> !l.contains("Server processing time"))// Ignore line with Server processing time
@@ -56,8 +56,11 @@ public class ControllerHandlebarsTest {
          * Assert
          */
         assertTrue(expected.hasNext());
-        while(expected.hasNext())
-            assertEquals(expected.next(), actual.next());
+        while(expected.hasNext()) {
+            String e = expected.next();
+            String a = actual.next();
+            assertEquals(e, a);
+        }
         assertFalse(actual.hasNext());
     }
 }
