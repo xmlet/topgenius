@@ -14,7 +14,7 @@ node {
     npmVersion = '10.2.3'
     // If true, it will download node using above parameters.
     // If false, it will try to use globally installed node.
-    download = false
+    download = true
 }
 
 npm_run_build {
