@@ -9,7 +9,7 @@ RUN ./gradlew clean stage --no-daemon
 
 FROM openjdk:17-jdk-slim
 
-COPY --from=build /build/libs/topgenius-1.0.jar app.jar
+COPY --from=build /build/libs/*.jar .
 
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "topgenius-1.0.jar"]
