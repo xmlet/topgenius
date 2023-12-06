@@ -46,8 +46,7 @@ public class ControllerHtmlFlowTest {
             .add("country", "australia")
             .add("limit", "8");
         ctrl.toptracksHandler(ctx);
-        String body = ctx.join();
-        String[] lines = body.split("\n");
+        String[] lines = ctx.join().split(System.lineSeparator());
         Iterator<String> actual = Arrays
             .stream(lines)
             .filter(l -> !l.contains("0."))// Ignore line with Server processing time
