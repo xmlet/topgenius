@@ -12,8 +12,8 @@ Web Application comparing 3 different approaches for template views: [Handlebars
 To build and run topgenius web app locally do this:
 
 ```
-$ ./gradlew stage
-$ ./gradlew run
+$ ./gradlew clean stage
+$ java -jar webserver/build/libs/topgenius-1.0.jar
 ```
 
 Topgenius app should now be running on http://localhost:3000/.
