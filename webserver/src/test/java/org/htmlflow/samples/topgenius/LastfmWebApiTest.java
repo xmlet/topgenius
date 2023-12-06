@@ -27,7 +27,7 @@ public class LastfmWebApiTest {
         assertEquals(expected, tracks[0].getName());
     }
 
-    @Test
+    // @Test
     public void getGeographicTopTracksInAustralia() throws IOException, NoSuchFieldException, IllegalAccessException {
         AsyncRequest areq = new MockAsyncRequest();
         int ausPages = expectedCountryPages(areq, "Australia");

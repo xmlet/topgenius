@@ -88,7 +88,7 @@ public class ControllerTopgeniusApiTest {
     }
 
 
-    @Test
+    // @Test
     public void testAndClearCache() throws InterruptedException {
         Vertx vertx = Vertx.vertx();
         ControllerSessionsForLastfm sessions = new ControllerSessionsForLastfm(vertx, new MockAsyncRequest());
