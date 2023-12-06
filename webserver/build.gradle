@@ -31,7 +31,7 @@ build.mustRunAfter clean
 
 task copyToLib(type: Copy) {
     into "$buildDir/libs"
-    from(configurations.implementation)
+    from(configurations.runtimeClasspath)
 }
 
 stage.dependsOn(copyToLib)
@@ -41,6 +41,7 @@ task copyReactToLib(type: Copy) {
     from(project(':reactjs').packageTopgeniusReact.archivePath)
 }
 
+copyReactToLib.dependsOn(project(':reactjs').packageTopgeniusReact)
 stage.dependsOn(copyReactToLib)
 
 task codeCoverageReport(type: JacocoReport) {
@@ -64,7 +65,7 @@ dependencies {
     implementation 'io.vertx:vertx-web:3.7.1'
     implementation 'com.github.xmlet:htmlflow:3.2'
 
-    runtimeOnly project(':reactjs')
+    // runtimeOnly project(':reactjs')
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
