@@ -171,12 +171,14 @@ public class LastfmWebApi {
      */
     private JsonAndTracks createCountryTopTracks(String country) {
         // Waisting a first page request just to get the total number of pages
-        int totalPages = geoTopTracks(country, 1)
-            .thenApply(body -> gson.fromJson(body, GeographicTopTracks.class))
-            .join()
-            .getTracks()
-            .getAttr()
-            .getTotalPages();
+        // !!!! Not working Last.fm only provides 200 pages
+        final int totalPages = 200;
+//        int totalPages = geoTopTracks(country, 1)
+//            .thenApply(body -> gson.fromJson(body, GeographicTopTracks.class))
+//            .join()
+//            .getTracks()
+//            .getAttr()
+//            .getTotalPages();
         /**
          * Every request through geoTopTracks() is performed on the
          * completion of the previous request to avoid concurrency and
