@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.1.1 r1855137">
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.2">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="build-web-test-plan" enabled="true">
-      <stringProp name="TestPlan.comments"></stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
-      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">false</boolProp>
     </TestPlan>
     <hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TopGenius React on Chrome" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TopGenius HtmlFlow on Chrome" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
           <stringProp name="LoopController.loops">20</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
         <stringProp name="ThreadGroup.num_threads">1</stringProp>
         <stringProp name="ThreadGroup.ramp_time">60</stringProp>
@@ -26,11 +25,14 @@
         <stringProp name="ThreadGroup.delay">1</stringProp>
         <stringProp name="TestPlan.comments">Virtual Users Running Scenario 1. 
 Make test last 1 minute (see Scheduler)</stringProp>
+        <boolProp name="ThreadGroup.delayedStart">false</boolProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
       </ThreadGroup>
       <hashTree>
         <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="HTTP Cookie Manager" enabled="true">
           <collectionProp name="CookieManager.cookies"/>
           <boolProp name="CookieManager.clearEachIteration">false</boolProp>
+          <boolProp name="CookieManager.controlledByThreadGroup">false</boolProp>
         </CookieManager>
         <hashTree/>
         <com.googlecode.jmeter.plugins.webdriver.config.ChromeDriverConfig guiclass="com.googlecode.jmeter.plugins.webdriver.config.gui.ChromeDriverConfigGui" testclass="com.googlecode.jmeter.plugins.webdriver.config.ChromeDriverConfig" testname="jp@gc - Chrome Driver Config" enabled="true">
@@ -49,32 +51,42 @@ Make test last 1 minute (see Scheduler)</stringProp>
           <boolProp name="WebDriverConfig.maximize_browser">false</boolProp>
           <boolProp name="WebDriverConfig.reset_per_iteration">false</boolProp>
           <boolProp name="WebDriverConfig.dev_mode">false</boolProp>
-          <stringProp name="ChromeDriverConfig.chromedriver_path">C:\Program Files (x86)\chromedriver\chromedriver.exe</stringProp>
           <boolProp name="ChromeDriverConfig.android_enabled">false</boolProp>
           <boolProp name="ChromeDriverConfig.headless_enabled">false</boolProp>
           <boolProp name="ChromeDriverConfig.insecurecerts_enabled">false</boolProp>
+          <boolProp name="WebDriverConfig.acceptinsecurecerts">false</boolProp>
+          <stringProp name="WebDriverConfig.driver_path">/opt/homebrew/bin/chromedriver</stringProp>
+          <boolProp name="WebDriverConfig.headless">false</boolProp>
+          <stringProp name="ChromeDriverConfig.additional_args"></stringProp>
+          <stringProp name="ChromeDriverConfig.binary_path"></stringProp>
+          <stringProp name="WebDriverConfig.custom_capabilites"></stringProp>
         </com.googlecode.jmeter.plugins.webdriver.config.ChromeDriverConfig>
         <hashTree/>
         <com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler guiclass="com.googlecode.jmeter.plugins.webdriver.sampler.gui.WebDriverSamplerGui" testclass="com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler" testname="jp@gc - WebDriver Sampler" enabled="true">
-          <stringProp name="WebDriverSampler.script">var pkg = JavaImporter(org.openqa.selenium);
-var pkgUi = JavaImporter(org.openqa.selenium.support.ui);
-var wait = new pkgUi.WebDriverWait(
+          <stringProp name="WebDriverSampler.script">import org.openqa.selenium.By;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import java.time.Duration
+
+var wait = new WebDriverWait(
 	WDS.browser,
-	30,  // timeout in seconds
-	50); // 50 milliseconds to sleep between polls
-var txtCount = pkg.By.id(&quot;txtTracksCount&quot;);
+	Duration.ofSeconds(30),  // timeout in seconds
+	Duration.ofMillis(50)); // 50 milliseconds to sleep between polls
+	
+var txtCount = By.id(&quot;txtTracksCount&quot;);
 var TRACKS_LIMIT = &quot;5000&quot;;
 
+
 // Initialize session to keep cache
-WDS.browser.get(&apos;http://localhost:3000/react&apos;);
+WDS.browser.get(&quot;http://localhost:3000/react&quot;);
 try{
-	var accept = WDS.browser.findElement(pkg.By.id(&apos;buttonAccept&apos;))
-	accept.click()
-}catch(e) {
+	WDS.browser.findElement(By.id(&quot;buttonAccept&quot;)).click();
+}catch(Exception e) {
 	// using Exceptions to regulate the program flow 
 	// is not the best way to go. Yet...
 }
-var inLimit = WDS.browser.findElement(pkg.By.id(&quot;inputLimit&quot;))
+
+var inLimit = WDS.browser.findElement(By.id(&quot;inputLimit&quot;));
 // Start bench
 WDS.sampleResult.sampleStart();
 // WDS.browser.get(&apos;http://localhost:3000/react&apos;);
@@ -82,17 +94,17 @@ inLimit.clear();
 inLimit.sendKeys(TRACKS_LIMIT);
 
 WDS.browser
-	.findElement(pkg.By.cssSelector(&quot;button&quot;))
+	.findElement(By.cssSelector(&quot;button&quot;))
 	.click();
 wait.until(
-	pkgUi.ExpectedConditions.textToBePresentInElementLocated(
+	ExpectedConditions.textToBePresentInElementLocated(
 		txtCount,
 		TRACKS_LIMIT));
 WDS.browser.executeScript(
 	&quot;window.scrollTo(0, document.body.scrollHeight)&quot;);
 WDS.sampleResult.sampleEnd();</stringProp>
           <stringProp name="WebDriverSampler.parameters"></stringProp>
-          <stringProp name="WebDriverSampler.language">javascript</stringProp>
+          <stringProp name="WebDriverSampler.language">groovy</stringProp>
         </com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler>
         <hashTree/>
       </hashTree>
