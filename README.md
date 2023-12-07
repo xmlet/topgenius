@@ -25,6 +25,11 @@ web application comparing the three view engine approaches.
 By default, these scripts use a 5000 tracks workload.
 We may change this value to evaluate other scenarios.  
 
+**Notice:** 
+* You should have Jmeter installed **with the Selenium/WebDriver plug-in**.
+* These JMX files are configured considering chromedriver is accessible via `/opt/homebrew/bin/chromedriver`.
+* Update chromedriver PATH according to your installation.
+
 Next we present an example of the command to run the test script of HtmlFlow:
 
 ```
