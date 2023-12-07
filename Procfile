@@ -1,1 +1,0 @@
-web: java -Dserver.port=$PORT $JAVA_OPTS -jar webserver/build/libs/topgenius-1.0.jar
