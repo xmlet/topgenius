@@ -10,7 +10,7 @@
       <boolProp name="TestPlan.tearDown_on_shutdown">false</boolProp>
     </TestPlan>
     <hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TopGenius HtmlFlow on Chrome" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TopGenius React on Chrome" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <stringProp name="LoopController.loops">20</stringProp>
@@ -68,13 +68,18 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.time.Duration
 
+// Parse parameters - Come from User Defined Variables
+//
+// var country = ${__P(country,&quot;australia&quot;)}; // NOT USED yet
+// var limit =  ${__P(limit,&quot;200&quot;)};
+
 var wait = new WebDriverWait(
 	WDS.browser,
 	Duration.ofSeconds(30),  // timeout in seconds
 	Duration.ofMillis(50)); // 50 milliseconds to sleep between polls
 	
 var txtCount = By.id(&quot;txtTracksCount&quot;);
-var TRACKS_LIMIT = &quot;5000&quot;;
+var TRACKS_LIMIT = &quot;${limit}&quot;;
 
 
 // Initialize session to keep cache
@@ -108,6 +113,21 @@ WDS.sampleResult.sampleEnd();</stringProp>
         </com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler>
         <hashTree/>
       </hashTree>
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="country" elementType="Argument">
+            <stringProp name="Argument.name">country</stringProp>
+            <stringProp name="Argument.value">${__P(country,australia)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="limit" elementType="Argument">
+            <stringProp name="Argument.name">limit</stringProp>
+            <stringProp name="Argument.value">${__P(limit,5000)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </Arguments>
+      <hashTree/>
     </hashTree>
   </hashTree>
 </jmeterTestPlan>

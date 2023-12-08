@@ -22,8 +22,6 @@ Topgenius app should now be running on http://localhost:3000/.
 
 We include in `jmeter` folder the scripts used to run performance tests of topgenius
 web application comparing the three view engine approaches.
-By default, these scripts use a 5000 tracks workload.
-We may change this value to evaluate other scenarios.  
 
 **Notice:** 
 * You should have Jmeter installed **with the Selenium/WebDriver plug-in**.
@@ -33,8 +31,19 @@ We may change this value to evaluate other scenarios.
 Next we present an example of the command to run the test script of HtmlFlow:
 
 ```
-$ jmeter -n -t TopGenius-HtmlFlow-Chrome.jmx -l <output-filename>.jtl
+jmeter -n -t TopGenius-SSR-Chrome.jmx -l <output-filename>.jtl -Jtemplate=htmlflow -Jcountry=australia -Jlimit=5000
 ```
+
+You may change the following parameters:
+* `template` - `htmlflow` or `handlebars`
+* `country` - any country
+* `limit` - An integer to a **maximum value of 10000**
+
+To test React you should use a different script to detect page load completion due to the use of CSR (client-side rendering).
+```
+jmeter -n -t TopGenius-React-Chrome.jmx -l <output-filename>.jtl -Jlimit=5000
+```
+
 
 Running these tests with JDK version 11, SE Runtime Environment 18.9 (build 11+28), 
 and ChromeDriver 74.0.3729.6 we got the following results:
