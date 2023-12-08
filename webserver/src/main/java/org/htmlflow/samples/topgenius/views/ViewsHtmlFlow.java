@@ -1,6 +1,7 @@
 package org.htmlflow.samples.topgenius.views;
 
-import htmlflow.DynamicHtml;
+import htmlflow.HtmlFlow;
+import htmlflow.HtmlView;
 import org.htmlflow.samples.topgenius.model.Track;
 import org.xmlet.htmlapifaster.EnumFormmethodMethodType;
 import org.xmlet.htmlapifaster.EnumMethodType;
@@ -17,10 +18,7 @@ public class ViewsHtmlFlow {
     private ViewsHtmlFlow() {
     }
 
-    public static final DynamicHtml<TopTracksContext> toptracks = DynamicHtml
-        .view(ViewsHtmlFlow::toptracksTemplate);
-
-    static void toptracksTemplate(DynamicHtml<TopTracksContext> view, TopTracksContext ctx) {
+    public static final HtmlView toptracks = HtmlFlow.view( view -> {
         view
             .html()
                 .head()
@@ -37,7 +35,8 @@ public class ViewsHtmlFlow {
                             .attrClass("jumbotron")
                             .p().attrClass("lead").a().attrHref("/").text("TopGenius.eu").__().__()
                             .hr().__()
-                            .form().attrClass("form-inline")
+                            .form().<TopTracksContext>dynamic((form, ctx) -> form
+                                .attrClass("form-inline")
                                 .div().attrClass("form-group")
                                     .label().attrClass("col-form-label").text("Country:").__()
                                     .input()
@@ -71,9 +70,10 @@ public class ViewsHtmlFlow {
                                     .attrId("buttonClearCache")
                                     .text("Clear Cache for " + ctx.country)
                                 .__()
+                            ) // dynamic
                             .__() // form
                             .br().__()
-                            .dynamic(jumbo -> { if(!ctx.hasSession) { jumbo
+                            .<TopTracksContext>dynamic((jumbo, ctx) -> { if(!ctx.hasSession) { jumbo
                                 .form()
                                     .attrClass("form-inline alert alert-warning")
                                     .attrMethod(EnumMethodType.POST)
@@ -88,11 +88,12 @@ public class ViewsHtmlFlow {
                                 .__(); // form
                             }})
                         .__() // div Jumbotron
-                        .p()
+                        .p().<TopTracksContext>dynamic((p, ctx) -> p
                             .strong().text("Server processing time:").__()
                             .text((currentTimeMillis() - ctx.begin) / 1000.0)
                             .text(" ms for ")
                             .text(ctx.country)
+                        ) // dynamic
                         .__()// p
                         .table()
                             .attrClass("table")
@@ -101,21 +102,20 @@ public class ViewsHtmlFlow {
                                 .th().text("Track").__()
                                 .th().text("Listeners").__()
                             .__()
-                            .dynamic(table -> {
+                            .<TopTracksContext>dynamic((table, ctx) -> {
                                 int[] count = {1};
                                 ctx.tracks.forEach(track ->
                                     table
                                         .tr()
-                                            .td().dynamic(td -> td.text(count[0]++)).__()
+                                            .td().text(count[0]++).__()
                                             .td()
-                                                .dynamic(td -> td
-                                                    .a()
-                                                        .attrHref(track.getUrl())
-                                                        .attrTarget("_blank")
-                                                        .text(track.getName())
-                                                    .__())
+                                                .a()
+                                                    .attrHref(track.getUrl())
+                                                    .attrTarget("_blank")
+                                                    .text(track.getName())
+                                                .__()
                                             .__()
-                                            .td().dynamic(td -> td.text(track.getListeners())).__()
+                                            .td().text(track.getListeners()).__()
                                         .__()
                                 );
                             })
@@ -123,7 +123,7 @@ public class ViewsHtmlFlow {
                     .__()
                 .__()
             .__();
-    }
+    });
 
     public static TopTracksContext context(String country, int limit, boolean hasSession, Stream<Track> tracks, long begin) {
         return new TopTracksContext(country, limit, hasSession, tracks, begin);

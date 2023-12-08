@@ -31,8 +31,8 @@ public class LastfmWebApi {
                                                     + LASTFM_API_KEY;
     private static final int TRACKS_PER_PAGE = 50;
 
-    private final Map<String, List<CompletableFuture<String>>> cacheJsonPages;
-    private final Map<String, List<CompletableFuture<Track[]>>> cacheTracksPages;
+    private final Map<String, List<CompletableFuture<String>>> cacheJsonPages = new HashMap<>();
+    private final Map<String, List<CompletableFuture<Track[]>>> cacheTracksPages = new HashMap<>();
     private final Gson gson;
     private AsyncRequest req;
 
@@ -44,8 +44,6 @@ public class LastfmWebApi {
     public LastfmWebApi(AsyncRequest req) {
         this.gson = new Gson();
         this.req = req;
-        this.cacheJsonPages = new HashMap<>();
-        this.cacheTracksPages = new HashMap<>();
     }
 
     /**
@@ -75,7 +73,7 @@ public class LastfmWebApi {
     /**
      * Dispatches a number of requests needed to fetch a stream of json pages with the size of nrOfPages.
      */
-    public Stream<String> countryTopTracksInJsonPages(String country, int nrOfPages){
+    private Stream<String> countryTopTracksInJsonPages(String country, int nrOfPages){
         int [] page = {1};
         CompletableFuture<String> seed = CompletableFuture.completedFuture(null);
         return Stream
@@ -88,7 +86,7 @@ public class LastfmWebApi {
     /**
      * Dispatches all requests for all pages.
      */
-    public Stream<String> countryTopTracksInJsonPagesFromCache(String country, int nrOfPages){
+    private Stream<String> countryTopTracksInJsonPagesFromCache(String country, int nrOfPages){
         return getOrCreateJsonPages(country)
             .stream()
             .map(CompletableFuture::join)

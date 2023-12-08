@@ -58,7 +58,7 @@ public class ControllerHtmlFlow {
             HttpResponsePrinter out = new HttpResponsePrinter(resp, req.connection(), future);
             ViewsHtmlFlow
                 .toptracks
-                .setPrintStream(out)
+                .setOut(out)
                 .write(context(country, limit, hasSession, tracks, begin));
             if(!future.isComplete())
                 future.complete(out);
@@ -70,7 +70,7 @@ public class ControllerHtmlFlow {
         });
     }
 
-    static class HttpResponsePrinter extends PrintStream {
+    static class HttpResponsePrinter implements Appendable {
         final HttpServerResponse resp;
         final Future<HttpResponsePrinter> future;
         Buffer buffer;
@@ -83,7 +83,6 @@ public class ControllerHtmlFlow {
             HttpConnection connection,
             Future<HttpResponsePrinter> future)
         {
-            super(new NullOutputStream());
             this.resp = resp;
             this.future = future;
             this.buffer = Buffer.buffer(MAX_SIZE);
@@ -95,13 +94,22 @@ public class ControllerHtmlFlow {
         }
 
         @Override
-        public void write(byte[] buf, int off, int len) {
-            buffer.appendBytes(buf, off, len);
-            index += len;
+        public Appendable append(CharSequence csq) throws IOException {
+            buffer.appendString(csq.toString());
+            index += csq.length();
             if(index >= MAX_SIZE) flushBuffer();
+            return this;
+        }
+        @Override
+        public Appendable append(CharSequence csq, int start, int end) throws IOException {
+            return append(csq.subSequence(start, end));
         }
 
         @Override
+        public Appendable append(char c) throws IOException {
+            return append(String.valueOf(c));
+        }
+
         public void close() {
             flushBuffer();
             resp.end();
@@ -117,13 +125,6 @@ public class ControllerHtmlFlow {
                 resp.close();
                 future.fail(e);
             }
-        }
-    }
-
-    static class NullOutputStream extends OutputStream {
-        @Override
-        public void write(int b) throws IOException {
-            throw new UnsupportedOperationException();
         }
     }
 
