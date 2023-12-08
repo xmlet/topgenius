@@ -65,6 +65,14 @@ Make test last 1 minute (see Scheduler)</stringProp>
         <com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler guiclass="com.googlecode.jmeter.plugins.webdriver.sampler.gui.WebDriverSamplerGui" testclass="com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler" testname="jp@gc - WebDriver Sampler" enabled="true">
           <stringProp name="WebDriverSampler.script">import org.openqa.selenium.By;
 
+// Parse parameters
+var template = ${__P(template,&quot;htmlflow&quot;)};
+var country = ${__P(country,&quot;australia&quot;)};
+var limit =  ${__P(limit,&quot;200&quot;)};
+
+var host = &quot;http://localhost:3000/&quot;;
+var url = host + &quot;$template?country=$country&amp;limit=$limit&quot;;
+
 // Initialize session to keep cache
 WDS.browser.get(&quot;http://localhost:3000&quot;);
 try{
@@ -76,12 +84,12 @@ try{
 
 // Start bench
 WDS.sampleResult.sampleStart();
-WDS.browser.get(&quot;http://localhost:3000/htmlflow?country=australia&amp;limit=10000&quot;);
+WDS.browser.get(url);
 WDS.browser.executeScript(
 	&quot;window.scrollTo(0, document.body.scrollHeight)&quot;);
 WDS.sampleResult.sampleEnd();
 </stringProp>
-          <stringProp name="WebDriverSampler.parameters"></stringProp>
+          <stringProp name="WebDriverSampler.parameters">htmlflow australia 200</stringProp>
           <stringProp name="WebDriverSampler.language">groovy</stringProp>
         </com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler>
         <hashTree/>
